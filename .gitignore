@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+.env
+
+# Backend runtime files (不上传上传文件和处理结果)
+backend/uploads/
+backend/results/
+
+# Backup files
+*.bak
+
+# Node / Frontend
+node_modules/
+frontend/dist/
+frontend/.env
+frontend/.env.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# macOS
+.DS_Store
+**/.DS_Store
+
+# Docker
+.docker/
+
+# Misc
+*.log
+findings.md
+progress.md
+task_plan.md
+
+# 原始报告数据文件（不入仓库）
+*.zip
+scripts/amazon_downloader/*.txt
+scripts/amazon_downloader/*.amzn1*

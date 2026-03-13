@@ -1,0 +1,800 @@
+{
+  "BK": {
+    "en": "Black",
+    "fr": "Noir",
+    "de": "Schwarz",
+    "it": "Nero",
+    "es": "Negro"
+  },
+  "PK": {
+    "en": "Pink",
+    "fr": "Rose",
+    "de": "Rosa",
+    "it": "Rosa",
+    "es": "Rosa"
+  },
+  "BH": {
+    "en": "Blush",
+    "fr": "Rose Blush",
+    "de": "Blush",
+    "it": "Rosa Cipria",
+    "es": "Rosa Empolvado"
+  },
+  "HP": {
+    "en": "Hot Pink",
+    "fr": "Rose Vif",
+    "de": "Pink",
+    "it": "Rosa Acceso",
+    "es": "Rosa Fuerte"
+  },
+  "CO": {
+    "en": "Coral",
+    "fr": "Corail",
+    "de": "Koralle",
+    "it": "Corallo",
+    "es": "Coral"
+  },
+  "RD": {
+    "en": "Red",
+    "fr": "Rouge",
+    "de": "Rot",
+    "it": "Rosso",
+    "es": "Rojo"
+  },
+  "BD": {
+    "en": "Burgundy",
+    "fr": "Bordeaux",
+    "de": "Burgunder",
+    "it": "Bordeaux",
+    "es": "Burdeos"
+  },
+  "IB": {
+    "en": "Ice Blue",
+    "fr": "Bleu Glace",
+    "de": "Eisblau",
+    "it": "Azzurro Ghiaccio",
+    "es": "Azul Hielo"
+  },
+  "BL": {
+    "en": "Sky Blue",
+    "fr": "Bleu Ciel",
+    "de": "Himmelblau",
+    "it": "Azzurro",
+    "es": "Azul Cielo"
+  },
+  "AQ": {
+    "en": "Aqua",
+    "fr": "Aqua",
+    "de": "Aqua",
+    "it": "Acqua",
+    "es": "Agua"
+  },
+  "SB": {
+    "en": "Sapphire Blue",
+    "fr": "Bleu Saphir",
+    "de": "Saphirblau",
+    "it": "Blu Zaffiro",
+    "es": "Azul Zafiro"
+  },
+  "NB": {
+    "en": "Navy Blue",
+    "fr": "Bleu Marine",
+    "de": "Marineblau",
+    "it": "Blu Navy",
+    "es": "Azul Marino"
+  },
+  "IN": {
+    "en": "Indigo",
+    "fr": "Indigo",
+    "de": "Indigo",
+    "it": "Indaco",
+    "es": "Índigo"
+  },
+  "MN": {
+    "en": "Midnight Navy",
+    "fr": "Marine Nuit",
+    "de": "Mitternachtsblau",
+    "it": "Blu Notte",
+    "es": "Azul Medianoche"
+  },
+  "MG": {
+    "en": "Mint Green",
+    "fr": "Vert Menthe",
+    "de": "Mintgrün",
+    "it": "Verde Menta",
+    "es": "Verde Menta"
+  },
+  "EM": {
+    "en": "Emerald Green",
+    "fr": "Vert Émeraude",
+    "de": "Smaragdgrün",
+    "it": "Verde Smeraldo",
+    "es": "Verde Esmeralda"
+  },
+  "DG": {
+    "en": "Dark Green",
+    "fr": "Vert Foncé",
+    "de": "Dunkelgrün",
+    "it": "Verde Scuro",
+    "es": "Verde Oscuro"
+  },
+  "TQ": {
+    "en": "Turquoise",
+    "fr": "Turquoise",
+    "de": "Türkis",
+    "it": "Turchese",
+    "es": "Turquesa"
+  },
+  "GR": {
+    "en": "Green",
+    "fr": "Vert",
+    "de": "Grün",
+    "it": "Verde",
+    "es": "Verde"
+  },
+  "LV": {
+    "en": "Lavender",
+    "fr": "Lavande",
+    "de": "Lavendel",
+    "it": "Lavanda",
+    "es": "Lavanda"
+  },
+  "PW": {
+    "en": "Periwinkle",
+    "fr": "Bleu Pervenche",
+    "de": "Blauviolett",
+    "it": "Pervinca",
+    "es": "Azul Pervinca"
+  },
+  "DP": {
+    "en": "Dark Purple",
+    "fr": "Violet Foncé",
+    "de": "Dunkelviolett",
+    "it": "Viola Scuro",
+    "es": "Morado Oscuro"
+  },
+  "PP": {
+    "en": "Purple",
+    "fr": "Violet",
+    "de": "Lila",
+    "it": "Viola",
+    "es": "Morado"
+  },
+  "YL": {
+    "en": "Yellow",
+    "fr": "Jaune",
+    "de": "Gelb",
+    "it": "Giallo",
+    "es": "Amarillo"
+  },
+  "WH": {
+    "en": "White",
+    "fr": "Blanc",
+    "de": "Weiß",
+    "it": "Bianco",
+    "es": "Blanco"
+  },
+  "CR": {
+    "en": "Cream",
+    "fr": "Crème",
+    "de": "Creme",
+    "it": "Crema",
+    "es": "Crema"
+  },
+  "MR": {
+    "en": "Mushroom",
+    "fr": "Champignon",
+    "de": "Pilzbraun",
+    "it": "Fungo",
+    "es": "Seta"
+  },
+  "GY": {
+    "en": "Grey",
+    "fr": "Gris",
+    "de": "Grau",
+    "it": "Grigio",
+    "es": "Gris"
+  },
+  "MB": {
+    "en": "Midnight Blue",
+    "fr": "Bleu Nuit",
+    "de": "Mitternachtsblau",
+    "it": "Blu Mezzanotte",
+    "es": "Azul Medianoche"
+  },
+  "PN": {
+    "en": "Parisian Night",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "BU": {
+    "en": "Blue Verdure on White",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "BB": {
+    "en": "Black & Blue",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "WB": {
+    "en": "White & Black",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "SW": {
+    "en": "Sapphire Blue & White",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "NW": {
+    "en": "Navy Blue & White",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "MC": {
+    "en": "Multicolor",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "OG": {
+    "en": "Olive Green",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "CF": {
+    "en": "Coffee",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "BG": {
+    "en": "Beige",
+    "fr": "Beige",
+    "de": "Beige",
+    "it": "Beige",
+    "es": "Beige"
+  },
+  "GM": {
+    "en": "Metallic Green",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "NR": {
+    "en": "Navy and Red",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "VB": {
+    "en": "Vibrant Blue",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "WP": {
+    "en": "White and Pink",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "BP": {
+    "en": "Black and Printed",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "DY": {
+    "en": "Deep Grey",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "PE": {
+    "en": "Peach",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "RS": {
+    "en": "Raspberry",
+    "fr": "Rouille",
+    "de": "Rost",
+    "it": "Ruggine",
+    "es": "Óxido"
+  },
+  "DR": {
+    "en": "Dusty Rose",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "RG": {
+    "en": "Rose Gold",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "SV": {
+    "en": "Silver",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "GD": {
+    "en": "Gold",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "RW": {
+    "en": "Red and White",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "OR": {
+    "en": "Orange",
+    "fr": "Orange",
+    "de": "Orange",
+    "it": "Arancione",
+    "es": "Naranja"
+  },
+  "MV": {
+    "en": "Mauve",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "RT": {
+    "en": "Rooibos Tea",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "TE": {
+    "en": "Teal",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "LL": {
+    "en": "Lilac",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "DL": {
+    "en": "Dark Lavender",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "BI": {
+    "en": "Blue Ink",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "OD": {
+    "en": "Purple Orchid",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "DN": {
+    "en": "Dusty Blue",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "DB": {
+    "en": "Light Teal",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "GB": {
+    "en": "Green Bean",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "KD": {
+    "en": "Brick Red",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "TP": {
+    "en": "transparent",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "AF": {
+    "en": "Anti-fog",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "FR": {
+    "en": "Frosted",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "MH": {
+    "en": "Mushroom",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "KA": {
+    "en": "Khaki",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "LB": {
+    "en": "Light Blue",
+    "fr": "Bleu Clair",
+    "de": "Hellblau",
+    "it": "Azzurro Chiaro",
+    "es": "Azul Claro"
+  },
+  "CA": {
+    "en": "Camel",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "LP": {
+    "en": "Leopard",
+    "fr": "Violet Clair",
+    "de": "Hellviolett",
+    "it": "Viola Chiaro",
+    "es": "Lila Claro"
+  },
+  "RB": {
+    "en": "Royal Blue",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "DE": {
+    "en": "Denim Blue",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "CP": {
+    "en": "Printed Cream",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "BO": {
+    "en": "Burnt Orange",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "IV": {
+    "en": "Ivory",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "CB": {
+    "en": "Cameo Brown",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "ST": {
+    "en": "Stormy",
+    "fr": "Rayé",
+    "de": "Gestreift",
+    "it": "A Righe",
+    "es": "A Rayas"
+  },
+  "BW": {
+    "en": "Black White",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "WV": {
+    "en": "White Green",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "NG": {
+    "en": "Navy Green",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "NP": {
+    "en": "Navy Pink",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "WR": {
+    "en": "White Red",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "BV": {
+    "en": "Black Green",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "BC": {
+    "en": "Black Orange",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "MT": {
+    "en": "Multicolor",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "BE": {
+    "en": "Bohemian Light Blue",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "PG": {
+    "en": "Printed Geometry",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "VE": {
+    "en": "Vermilion",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "MU": {
+    "en": "Mulberry",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "SN": {
+    "en": "Sunset",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "PT": {
+    "en": "Purple Wisteria",
+    "fr": "Imprimé",
+    "de": "Gemustert",
+    "it": "Fantasia",
+    "es": "Estampado"
+  },
+  "BY": {
+    "en": "BY",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "CH": {
+    "en": "Champagne",
+    "fr": "Charbon",
+    "de": "Anthrazit",
+    "it": "Antracite",
+    "es": "Antracita"
+  },
+  "BR": {
+    "en": "Black Red",
+    "fr": "Marron",
+    "de": "Braun",
+    "it": "Marrone",
+    "es": "Marrón"
+  },
+  "OL": {
+    "en": "Opal Lilac",
+    "fr": "Olive",
+    "de": "Olivgrün",
+    "it": "Oliva",
+    "es": "Oliva"
+  },
+  "MO": {
+    "en": "Metallic Rose",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "GI": {
+    "en": "Ginger",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "CM": {
+    "en": "Caramel",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "EP": {
+    "en": "EP",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "SG": {
+    "en": "Sage Green",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "AL": {
+    "en": "Amber Bloom",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "SF": {
+    "en": "Sunlit Fern",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "VP": {
+    "en": "Vintage Primrose Celadon",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "KG": {
+    "en": "Black & Gold",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "BN": {
+    "en": "Brown",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "EU": {
+    "en": "Eucalyptus",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "FL": {
+    "en": "Frosted Lilac",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "CK": {
+    "en": "Coral Pink",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "AD": {
+    "en": "Dark Red",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "IA": {
+    "en": "Ivory-Black",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "SL": {
+    "en": "Slate Blue",
+    "fr": "Ardoise",
+    "de": "Schiefer",
+    "it": "Ardesia",
+    "es": "Pizarra"
+  },
+  "DS": {
+    "en": "damson",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  }
+}
