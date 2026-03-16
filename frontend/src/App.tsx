@@ -7,8 +7,9 @@ import { CountryTemplateSelector } from './components/ExcelProcess/CountryTempla
 import { PrefixInput } from './components/ExcelProcess/PrefixInput';
 import { ProcessButton } from './components/ExcelProcess/ProcessButton';
 import { FileUploader } from './components/ExcelUpload/FileUploader';
+import FollowSell from './pages/FollowSell';
 
-type TabKey = 'process' | 'mapping' | 'history';
+type TabKey = 'process' | 'mapping' | 'history' | 'follow-sell';
 
 function App() {
   const [activeTab, setActiveTab] = useState<TabKey>('process');
@@ -46,6 +47,7 @@ function App() {
             { key: 'process' as const, label: '加色加码' },
             { key: 'mapping' as const, label: '颜色映射管理' },
             { key: 'history' as const, label: '下载历史' },
+            { key: 'follow-sell' as const, label: '跟卖上新' },
           ].map((tab) => (
             <button
               key={tab.key}
@@ -81,6 +83,8 @@ function App() {
             </>
           ) : activeTab === 'mapping' ? (
             <ColorMappingManager />
+          ) : activeTab === 'follow-sell' ? (
+            <FollowSell />
           ) : (
             <DownloadHistory />
           )}
