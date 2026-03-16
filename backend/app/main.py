@@ -6,7 +6,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from app.api import excel, mapping
+from app.api import excel, follow_sell, mapping
 from app.config import CORS_ORIGINS, HOST, PORT
 
 logger = logging.getLogger(__name__)
@@ -27,6 +27,7 @@ app.add_middleware(
 
 app.include_router(mapping.router)
 app.include_router(excel.router)
+app.include_router(follow_sell.router)
 
 
 @app.exception_handler(Exception)
