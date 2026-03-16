@@ -51,12 +51,19 @@ def scan_old_skus_by_prefix(
     old_product_code: str,
     color_code: str,
 ) -> list[dict[str, Any]]:
-    """在 by_sku 索引中按前缀扫描老款 SKU 行，返回 merged_data 平铺字典列表。"""
+    """在 by_sku 索引中按前缀扫描老款 SKU 行，返回 merged_data 平铺字典列表。
+
+    只匹配老款格式（无国家后缀，即不含 '-'），排除已上架的新款 SKU（如 EG02084BK04-UK1）。
+    """
     prefix = (old_product_code + color_code).upper()
     by_sku: dict[str, Any] = index.get("by_sku", {}) if isinstance(index, dict) else {}
     results = []
     for raw_sku, entry in by_sku.items():
-        if not raw_sku.upper().startswith(prefix):
+        upper_sku = raw_sku.upper()
+        if not upper_sku.startswith(prefix):
+            continue
+        # 排除含国家后缀的 SKU（如 EG02084BK04-UK1），老款不含 '-'
+        if "-" in upper_sku:
             continue
         if not isinstance(entry, dict):
             continue
@@ -129,9 +136,23 @@ def _write_to_template(
 
     def _col_idx(key: str) -> int | None:
         k = key.strip().casefold()
-        return machine_headers.get(k) or display_headers.get(k)
+        # 优先匹配机器列名，fallback 显示列名；
+        # 同时尝试 hyphen ↔ underscore 互转，兼容 All Listings 连字符字段名
+        return (
+            machine_headers.get(k)
+            or display_headers.get(k)
+            or machine_headers.get(k.replace("-", "_"))
+            or machine_headers.get(k.replace("_", "-"))
+            or display_headers.get(k.replace("-", "_"))
+        )
 
-    START_ROW = 5
+    # 模板 row 4 开始为数据区（含示例行），从 row 4 开始写以覆盖示例数据
+    START_ROW = 4
+    # 先清空模板已有的示例数据行（row 4 开始）
+    for r in range(START_ROW, ws.max_row + 1):
+        for c in range(1, max_col + 1):
+            ws.cell(row=r, column=c, value=None)
+
     for row_idx, row_data in enumerate(rows, start=START_ROW):
         for field_key, value in row_data.items():
             col = _col_idx(field_key)
