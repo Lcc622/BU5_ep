@@ -1,13 +1,30 @@
 # backend/app/core/processors/follow_sell_processor.py
 """跟卖上新处理器。"""
 from __future__ import annotations
+
+import shutil
+from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
+
 from openpyxl import load_workbook
-from app.config import UPLOADS_DIR
+
+from app.config import (
+    COUNTRY_PROFILES, RESULTS_DIR, TEMPLATES_DIR, UPLOADS_DIR,
+)
+from app.core.indexers.listing_indexer import ListingIndexer
+from app.core.parsers.sku import parse_sku
+from app.models.follow_sell import FollowSellRequest, FollowSellResult
 
 
 MAPPING_FILENAME = "新老款映射信息(1).xlsx"
+
+IMAGE_COLUMNS = [
+    "main_image_url",
+    "other_image_url1", "other_image_url2", "other_image_url3",
+    "other_image_url4", "other_image_url5", "other_image_url6",
+    "other_image_url7", "other_image_url8",
+]
 
 
 def load_product_mapping(mapping_path: Path | None = None) -> dict[str, str]:
@@ -34,15 +51,7 @@ def scan_old_skus_by_prefix(
     old_product_code: str,
     color_code: str,
 ) -> list[dict[str, Any]]:
-    """在 by_sku 索引中按前缀扫描老款 SKU 行，返回 merged_data 平铺字典列表。
-
-    老款 SKU 在 All Listings 中无国家后缀（如 EG02084BK04）。
-    不使用 parse_sku()，直接按字符串前缀匹配。
-
-    by_sku 条目结构（来自 ListingIndexer.build_index）:
-      { "sku": ..., "merged_data": {...flat fields...}, "all_listings_data": {...}, ... }
-    返回 merged_data（平铺字段），不含嵌套子字典。
-    """
+    """在 by_sku 索引中按前缀扫描老款 SKU 行，返回 merged_data 平铺字典列表。"""
     prefix = (old_product_code + color_code).upper()
     by_sku: dict[str, Any] = index.get("by_sku", {}) if isinstance(index, dict) else {}
     results = []
@@ -51,7 +60,6 @@ def scan_old_skus_by_prefix(
             continue
         if not isinstance(entry, dict):
             continue
-        # 取平铺数据：merged_data 优先，fallback 到 all_listings_data
         flat = entry.get("merged_data") or entry.get("all_listings_data") or {}
         if flat:
             results.append(flat)
@@ -59,10 +67,190 @@ def scan_old_skus_by_prefix(
 
 
 def build_new_sku(old_sku: str, old_product_code: str, new_product_code: str, suffix: str) -> str:
-    """将老款 SKU 中的产品码替换为新款产品码，并拼接 suffix。
-
-    old_sku 格式：product_code + color_code + size_code（无后缀）
-    示例：EG02084BK04 + old=EG02084 + new=EG02088 + -UK1 → EG02088BK04-UK1
-    """
-    rest = old_sku.upper()[len(old_product_code):]   # 切掉老产品码，保留颜色+尺码
+    """将老款 SKU 中的产品码替换为新款产品码，并拼接 suffix。"""
+    rest = old_sku.upper()[len(old_product_code):]
     return new_product_code.upper() + rest + suffix
+
+
+def calculate_prices(old_price: Any) -> tuple[float, float]:
+    """计算新版本售价和 RRP。
+
+    Raises:
+        ValueError: 老款价格缺失或无法解析
+    """
+    if old_price is None or str(old_price).strip() == "":
+        raise ValueError("老款 price 缺失，无法计算新价格")
+    try:
+        base = round(float(old_price), 2)
+    except (ValueError, TypeError) as exc:
+        raise ValueError(f"老款 price 无法解析: {old_price!r}") from exc
+    new_price = round(base + 0.1, 2)
+    list_price = round(new_price + 10, 2)
+    return new_price, list_price
+
+
+def _resolve_template_path(template_file: str) -> Path:
+    """解析模板路径，兼容 Docker 和本地开发环境。"""
+    docker_path = TEMPLATES_DIR / template_file
+    if docker_path.exists():
+        return docker_path
+    local_path = Path(__file__).resolve().parents[4] / "templates" / template_file
+    if local_path.exists():
+        return local_path
+    raise FileNotFoundError(
+        f"模板文件不存在: {template_file}\n"
+        f"  尝试路径 1: {docker_path}\n"
+        f"  尝试路径 2: {local_path}"
+    )
+
+
+def _write_to_template(
+    template_path: Path,
+    output_path: Path,
+    rows: list[dict[str, Any]],
+) -> None:
+    """将行数据写入 Excel 模板（复用 UK AddColor 模板结构）。"""
+    if not template_path.exists():
+        raise FileNotFoundError(f"模板文件不存在: {template_path}")
+
+    shutil.copy(template_path, output_path)
+    wb = load_workbook(output_path)
+    ws = wb.active
+
+    max_col = ws.max_column
+    display_headers = {
+        str(ws.cell(2, c).value or "").strip().casefold(): c
+        for c in range(1, max_col + 1)
+    }
+    machine_headers = {
+        str(ws.cell(3, c).value or "").strip().casefold(): c
+        for c in range(1, max_col + 1)
+    }
+
+    def _col_idx(key: str) -> int | None:
+        k = key.strip().casefold()
+        return machine_headers.get(k) or display_headers.get(k)
+
+    START_ROW = 5
+    for row_idx, row_data in enumerate(rows, start=START_ROW):
+        for field_key, value in row_data.items():
+            col = _col_idx(field_key)
+            if col is not None:
+                ws.cell(row=row_idx, column=col, value=value)
+
+    wb.save(output_path)
+    wb.close()
+
+
+class FollowSellProcessor:
+    """跟卖上新处理器。"""
+
+    def process(
+        self,
+        request: FollowSellRequest,
+        progress_callback: Callable[[int], None] | None = None,
+    ) -> FollowSellResult:
+        def _progress(pct: int) -> None:
+            if progress_callback:
+                progress_callback(pct)
+
+        _progress(5)
+
+        # 1. 加载映射表
+        mapping = load_product_mapping()
+        if not mapping:
+            raise RuntimeError("映射文件为空或不存在，请确认 backend/uploads/新老款映射信息(1).xlsx")
+
+        _progress(10)
+
+        # 2. 构建索引
+        indexer = ListingIndexer()
+        listings_path = UPLOADS_DIR / request.all_listings_file
+        category_paths = [UPLOADS_DIR / f for f in request.category_files]
+        index = indexer.build_index(listings_path, category_paths)
+
+        _progress(30)
+
+        # 3. 解析新款 SKU → 按 (new_product_code, color_code) 分组
+        color_groups: dict[tuple[str, str], str] = {}  # (new_pc, color) -> suffix
+        invalid_skus: list[str] = []
+        for raw in request.new_skus:
+            try:
+                info = parse_sku(raw)
+            except (ValueError, Exception):
+                invalid_skus.append(raw)
+                continue
+            key = (info.product_code, info.color_code)
+            if key not in color_groups:
+                color_groups[key] = info.suffix
+
+        _progress(40)
+
+        # 4. 对每个颜色组生成行
+        profile = COUNTRY_PROFILES[request.country]
+        all_rows: list[dict[str, Any]] = []
+        skipped_skus: list[str] = []
+        no_price_skus: list[str] = []
+        identity_skus: list[str] = []
+
+        total_groups = len(color_groups)
+        for idx, ((new_pc, color_code), suffix) in enumerate(color_groups.items()):
+            old_pc = mapping.get(new_pc)
+            if old_pc is None:
+                skipped_skus.append(f"{new_pc}{color_code}{suffix}（映射表无此产品码）")
+                continue
+            if old_pc == new_pc:
+                identity_skus.append(new_pc)
+
+            old_rows = scan_old_skus_by_prefix(index, old_pc, color_code)
+            if not old_rows:
+                skipped_skus.append(f"{new_pc}{color_code}{suffix}（All Listings 无老款命中）")
+                continue
+
+            for old_row in old_rows:
+                old_sku_raw = str(old_row.get("seller-sku") or old_row.get("sku") or "").strip().upper()
+                if not old_sku_raw:
+                    continue
+
+                old_price_raw = old_row.get("price") or old_row.get("standard_price")
+                try:
+                    new_price, list_price = calculate_prices(old_price_raw)
+                except ValueError:
+                    no_price_skus.append(old_sku_raw)
+                    continue
+
+                new_sku = build_new_sku(old_sku_raw, old_pc, new_pc, suffix)
+
+                row: dict[str, Any] = dict(old_row)
+                row["item_sku"] = new_sku
+                row["external_product_id"] = old_row.get("asin1") or old_row.get("product-id") or ""
+                row["external_product_id_type"] = "ASIN"
+                row["model"] = new_sku
+                row["part_number"] = new_sku
+                row["standard_price"] = new_price
+                row["list_price"] = list_price
+                row["quantity"] = 2
+                for img_col in IMAGE_COLUMNS:
+                    row[img_col] = ""
+
+                all_rows.append(row)
+
+            _progress(40 + int(50 * (idx + 1) / max(total_groups, 1)))
+
+        # 5. 写入模板
+        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+        output_name = f"UK-跟卖上新-{timestamp}.xlsx"
+        output_path = RESULTS_DIR / output_name
+        template_path = _resolve_template_path(profile.template_file)
+        _write_to_template(template_path, output_path, all_rows)
+
+        _progress(100)
+
+        return FollowSellResult(
+            output_file=output_name,
+            processed_count=len(all_rows),
+            skipped_skus=skipped_skus,
+            invalid_skus=invalid_skus,
+            no_price_skus=no_price_skus,
+            identity_skus=identity_skus,
+        )

@@ -91,3 +91,25 @@ def test_build_new_sku_replaces_product_code():
 def test_build_new_sku_8char_product_code():
     """8 位产品码也能正确替换。"""
     assert build_new_sku("EP007518BK04", "EP007518", "EE007568", "-UK1") == "EE007568BK04-UK1"
+
+
+from app.core.processors.follow_sell_processor import calculate_prices
+
+
+def test_calculate_prices_standard():
+    new_price, list_price = calculate_prices(59.99)
+    assert new_price == 60.09
+    assert list_price == 70.09
+
+
+def test_calculate_prices_rounding():
+    """确保两位小数精度。"""
+    new_price, list_price = calculate_prices(29.95)
+    assert new_price == 30.05
+    assert list_price == 40.05
+
+
+def test_calculate_prices_none_raises():
+    """价格缺失时抛出 ValueError。"""
+    with pytest.raises(ValueError, match="price"):
+        calculate_prices(None)
