@@ -77,7 +77,8 @@ async def start_follow_sell(request: FollowSellRequest) -> FollowSellJobStatus:
 async def get_job_status(job_id: str) -> FollowSellJobStatus:
     """轮询任务状态。"""
     with JOB_LOCK:
-        state = JOB_STATES.get(job_id)
+        raw = JOB_STATES.get(job_id)
+        state = dict(raw) if raw is not None else None
     if state is None:
         raise HTTPException(status_code=404, detail=f"任务不存在: {job_id}")
 
