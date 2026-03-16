@@ -14,6 +14,32 @@ const LANGS: { key: keyof ColorNames; label: string }[] = [
 
 const EMPTY_NAMES: ColorNames = { en: '', fr: '', de: '', it: '', es: '' };
 
+const normalizeColorNames = (value: unknown): ColorNames => {
+  if (!value || typeof value !== 'object') {
+    return { ...EMPTY_NAMES };
+  }
+
+  const source = value as Partial<Record<keyof ColorNames, unknown>>;
+
+  return {
+    en: typeof source.en === 'string' ? source.en : '',
+    fr: typeof source.fr === 'string' ? source.fr : '',
+    de: typeof source.de === 'string' ? source.de : '',
+    it: typeof source.it === 'string' ? source.it : '',
+    es: typeof source.es === 'string' ? source.es : '',
+  };
+};
+
+const normalizeColorMapping = (value: unknown): ColorMapping => {
+  if (!value || typeof value !== 'object') {
+    return {};
+  }
+
+  return Object.fromEntries(
+    Object.entries(value).map(([code, names]) => [code, normalizeColorNames(names)])
+  );
+};
+
 export function ColorMappingManager() {
   const queryClient = useQueryClient();
   const [keyword, setKeyword] = useState('');
@@ -23,7 +49,7 @@ export function ColorMappingManager() {
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ['mappings'],
-    queryFn: () => mappingApi.getAllMappings(),
+    queryFn: async () => normalizeColorMapping(await mappingApi.getAllMappings()),
   });
 
   useEffect(() => {
@@ -36,7 +62,7 @@ export function ColorMappingManager() {
       if (!trimmed) {
         return data ?? {};
       }
-      return mappingApi.searchMappings(trimmed);
+      return normalizeColorMapping(await mappingApi.searchMappings(trimmed));
     },
     onSuccess: (result) => {
       setDisplayMappings(result);
