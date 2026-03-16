@@ -390,8 +390,9 @@ class AddColorSizeProcessor:
             selected_prefixes=normalized_prefixes,
             target_colors=normalized_colors,
             mode=mode,
+            output_filename=output_filename,
         )
-        output_name = self._resolve_output_filename(output_filename, _req_ns)
+        output_name = self._resolve_output_filename(getattr(_req_ns, "output_filename", None), _req_ns)
         output_path = RESULTS_DIR / output_name
         self._write_workbook(
             output_path=output_path,
@@ -855,7 +856,7 @@ class AddColorSizeProcessor:
     def _build_image_url(self, product_code: str, color_code: str, suffix: str) -> str:
         return f"https://eppic.s3.amazonaws.com/{product_code}{color_code}{suffix}.jpg"
 
-    def _resolve_output_filename(self, output_filename: str | None, request: Any) -> str:
+    def _resolve_output_filename(self, output_filename: str | None, request: "ProcessRequest") -> str:
         if output_filename:
             filename = Path(output_filename).name
             if not filename.lower().endswith(".xlsx"):
