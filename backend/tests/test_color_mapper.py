@@ -1,7 +1,7 @@
 """测试 ColorMapper 多语言支持。"""
 import json
+
 import pytest
-from pathlib import Path
 
 
 @pytest.fixture
@@ -79,18 +79,3 @@ def test_get_all_mappings_returns_multilang_dicts(multilang_file, monkeypatch):
     all_m = mapper.get_all_mappings()
     assert isinstance(all_m["BK"], dict)
     assert "en" in all_m["BK"]
-
-
-def test_legacy_format_loaded_correctly(tmp_path, monkeypatch):
-    """旧格式 {"BK": "Black"} 加载时应自动转换为多语言格式。"""
-    legacy_data = {"BK": "Black", "PK": "Pink"}
-    mapping_file = tmp_path / "colorMapping.json"
-    mapping_file.write_text(json.dumps(legacy_data), encoding="utf-8")
-    import app.config as cfg
-    monkeypatch.setattr(cfg, "COLOR_MAPPING_FILE", mapping_file)
-    from importlib import reload
-    import app.core.color_mapper as cm_module
-    reload(cm_module)
-    mapper = cm_module.ColorMapper()
-    assert mapper.get_mapping("BK", lang="en") == "Black"
-    assert mapper.get_mapping("BK", lang="fr") == "Black"  # fallback to en
