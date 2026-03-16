@@ -2,9 +2,11 @@
 
 import json
 from pathlib import Path
+from typing import Any
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 COLOR_MAPPING_FILE = DATA_DIR / "colorMapping.json"
+LANGS = ("en", "fr", "de", "it", "es")
 
 # 常用颜色的多语言翻译表
 TRANSLATIONS: dict[str, dict[str, str]] = {
@@ -62,26 +64,36 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
 }
 
 
-def migrate():
+def _is_multilang_entry(value: Any) -> bool:
+    """判断单个颜色项是否已经符合目标多语言结构。"""
+    return isinstance(value, dict) and all(lang in value for lang in LANGS)
+
+
+def _build_entry(code: str, value: Any) -> dict[str, str]:
+    """将旧/新格式条目统一规范化为多语言结构。"""
+    if _is_multilang_entry(value):
+        return {lang: str(value.get(lang, "") or "") for lang in LANGS}
+
+    en_name = str(value or "")
+    extra = TRANSLATIONS.get(code, {})
+    return {
+        "en": en_name,
+        "fr": extra.get("fr", ""),
+        "de": extra.get("de", ""),
+        "it": extra.get("it", ""),
+        "es": extra.get("es", ""),
+    }
+
+
+def migrate() -> bool:
     with COLOR_MAPPING_FILE.open("r", encoding="utf-8") as f:
-        old: dict = json.load(f)
+        old: dict[str, Any] = json.load(f)
 
-    # 已经是多语言格式则跳过
-    first_val = next(iter(old.values()), None)
-    if isinstance(first_val, dict):
+    if old and all(_is_multilang_entry(value) for value in old.values()):
         print("已经是多语言格式，无需迁移。")
-        return
+        return False
 
-    new: dict[str, dict[str, str]] = {}
-    for code, en_name in old.items():
-        extra = TRANSLATIONS.get(code, {})
-        new[code] = {
-            "en": en_name,
-            "fr": extra.get("fr", ""),
-            "de": extra.get("de", ""),
-            "it": extra.get("it", ""),
-            "es": extra.get("es", ""),
-        }
+    new = {code: _build_entry(code, value) for code, value in old.items()}
 
     # 备份原文件
     backup = COLOR_MAPPING_FILE.with_suffix(".json.bak")
@@ -90,8 +102,10 @@ def migrate():
 
     with COLOR_MAPPING_FILE.open("w", encoding="utf-8") as f:
         json.dump(new, f, ensure_ascii=False, indent=2)
+        f.write("\n")
 
     print(f"迁移完成，共 {len(new)} 个颜色码已转换为多语言格式。")
+    return True
 
 
 if __name__ == "__main__":
