@@ -190,7 +190,7 @@ def _create_listing_indexer() -> Any:
 def _analyze_all_listings(file_path: Path) -> AnalysisResult:
     try:
         indexer = _create_listing_indexer()
-        index_data = indexer.build_index(file_path, [])
+        index_data = indexer.build_index([file_path], [])
     except UnicodeDecodeError as exc:
         raise HTTPException(status_code=400, detail="All listings 文件编码不正确，请使用 UTF-8 导出") from exc
     except ValueError as exc:
@@ -200,24 +200,25 @@ def _analyze_all_listings(file_path: Path) -> AnalysisResult:
         {
             row["parsed_sku"].product_code
             for row in index_data["all_listings_rows"]
-            if row.get("parsed_sku") is not None
+            if row.get("parsed_sku") is not None and row["parsed_sku"].product_code is not None
         }
     )
     suffixes = sorted(
         {
             row["parsed_sku"].suffix
             for row in index_data["all_listings_rows"]
-            if row.get("parsed_sku") is not None
+            if row.get("parsed_sku") is not None and row["parsed_sku"].suffix is not None
         }
     )
     color_counter = Counter(
         row["parsed_sku"].color_code
         for row in index_data["all_listings_rows"]
-        if row.get("parsed_sku") is not None
+        if row.get("parsed_sku") is not None and row["parsed_sku"].color_code is not None
     )
     color_distribution = [
         ColorDistribution(color_code=color_code, count=count)
         for color_code, count in sorted(color_counter.items())
+        if color_code is not None
     ]
 
     return AnalysisResult(
@@ -323,9 +324,15 @@ def _run_process_job(job_id: str, request: ProcessRequest) -> None:
 
 
 def _validate_process_files(request: ProcessRequest) -> None:
-    all_listings_path = _resolve_uploaded_file(request.all_listings_file)
-    if f"{request.country.value}_all_listings_" not in all_listings_path.name:
-        raise HTTPException(status_code=400, detail="all_listings_file 与国家不匹配")
+    for filename in request.all_listings_files:
+        all_listings_path = _resolve_uploaded_file(filename)
+        if f"{request.country.value}_all_listings_" not in all_listings_path.name:
+            raise HTTPException(status_code=400, detail=f"all_listings_files 与国家不匹配: {filename}")
+
+    if request.fr_all_listings_file and request.country in {CountryEnum.DE, CountryEnum.IT, CountryEnum.ES}:
+        fr_all_listings_path = _resolve_uploaded_file(request.fr_all_listings_file)
+        if "FR_all_listings_" not in fr_all_listings_path.name:
+            raise HTTPException(status_code=400, detail="fr_all_listings_file 必须是 FR all listings 文件")
 
     for filename in request.category_files:
         category_path = _resolve_uploaded_file(filename)
@@ -348,7 +355,12 @@ async def upload_listings(
         allowed_extensions=LISTINGS_EXTENSIONS,
         file_label="all listings 文件",
     )
-    _cleanup_old_uploads(resolved_country, "all_listings", destination)
+    _cleanup_old_uploads(
+        resolved_country,
+        "all_listings",
+        destination,
+        keep_latest_only=False,
+    )
     return _analyze_all_listings(destination)
 
 
@@ -356,11 +368,17 @@ async def upload_listings(
 async def upload_category(
     file: UploadFile = File(...),
     country: str = Form(...),
+    store_type: str = Form(...),
 ) -> UploadResponse:
     """上传 category 文件。"""
     resolved_country = _resolve_country(country)
+    normalized_store_type = str(store_type or "").strip().lower()
+    if normalized_store_type not in {"pz", "ep"}:
+        raise HTTPException(status_code=422, detail="store_type must be 'pz' or 'ep'")
+
+    prefix = f"category_{normalized_store_type}"
     original_name = _safe_filename(file.filename or "")
-    destination = _create_upload_path(resolved_country, "category", original_name)
+    destination = _create_upload_path(resolved_country, prefix, original_name)
     await _save_upload(
         upload=file,
         destination=destination,
@@ -369,7 +387,7 @@ async def upload_category(
     )
     _cleanup_old_uploads(
         resolved_country,
-        "category",
+        prefix,
         destination,
         keep_latest_only=False,
     )
@@ -381,7 +399,8 @@ async def get_uploaded_files(country: CountryEnum = Query(...)) -> UploadedFiles
     """按国家列出已上传文件。"""
     return UploadedFilesResponse(
         all_listings=_list_uploaded_files(country, "all_listings"),
-        category_listings=_list_uploaded_files(country, "category"),
+        pz_category_listings=_list_uploaded_files(country, "category_pz"),
+        ep_category_listings=_list_uploaded_files(country, "category_ep"),
     )
 
 
