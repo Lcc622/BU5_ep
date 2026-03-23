@@ -42,7 +42,7 @@ export interface AnalysisResult {
 
 export interface ProcessRequest {
   country: Country;
-  all_listings_file: string;
+  all_listings_files: string[];
   category_files: string[];
   selected_prefixes: string[];
   target_colors: string[];
@@ -87,7 +87,8 @@ export interface TemplateInfo {
 
 export interface UploadedFilesResponse {
   all_listings: string[];
-  category_listings: string[];
+  pz_category_listings: string[];
+  ep_category_listings: string[];
 }
 
 export interface ResultFileInfo {
