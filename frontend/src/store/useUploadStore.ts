@@ -3,8 +3,9 @@ import { persist } from 'zustand/middleware';
 import type { AnalysisResult, UploadedFilesResponse } from '../types/api';
 
 interface CountryUploadState {
-  allListingsFile: string | null;
-  categoryFiles: string[];
+  allListingsFiles: string[];
+  pzCategoryFiles: string[];
+  epCategoryFiles: string[];
   analysisResult: AnalysisResult | null;
   selectedPrefixes: string[];
 }
@@ -16,22 +17,26 @@ interface FileSyncResult {
 }
 
 const createEmptyCountryState = (): CountryUploadState => ({
-  allListingsFile: null,
-  categoryFiles: [],
+  allListingsFiles: [],
+  pzCategoryFiles: [],
+  epCategoryFiles: [],
   analysisResult: null,
   selectedPrefixes: [],
 });
 
 interface UploadStore {
   filesByCountry: Record<string, CountryUploadState>;
-  getAllListingsFile: (country: string) => string | null;
-  getCategoryFiles: (country: string) => string[];
+  getAllListingsFiles: (country: string) => string[];
+  getPzCategoryFiles: (country: string) => string[];
+  getEpCategoryFiles: (country: string) => string[];
   getAnalysisResult: (country: string) => AnalysisResult | null;
   getSelectedPrefixes: (country: string) => string[];
-  setAllListingsFile: (country: string, filename: string | null) => void;
-  setCategoryFiles: (country: string, filenames: string[]) => void;
-  addCategoryFile: (country: string, filename: string) => void;
-  removeCategoryFile: (country: string, filename: string) => void;
+  addAllListingsFile: (country: string, filename: string) => void;
+  removeAllListingsFile: (country: string, filename: string) => void;
+  addPzCategoryFile: (country: string, filename: string) => void;
+  removePzCategoryFile: (country: string, filename: string) => void;
+  addEpCategoryFile: (country: string, filename: string) => void;
+  removeEpCategoryFile: (country: string, filename: string) => void;
   setAnalysisResult: (country: string, result: AnalysisResult | null) => void;
   setSelectedPrefixes: (country: string, prefixes: string[]) => void;
   syncUploadedFiles: (country: string, files: UploadedFilesResponse) => FileSyncResult;
@@ -51,37 +56,17 @@ export const useUploadStore = create<UploadStore>()(
   persist(
     (set, get) => ({
       filesByCountry: {},
-      getAllListingsFile: (country) =>
-        get().filesByCountry[country]?.allListingsFile ?? null,
-      getCategoryFiles: (country) =>
-        get().filesByCountry[country]?.categoryFiles ?? [],
+      getAllListingsFiles: (country) =>
+        get().filesByCountry[country]?.allListingsFiles ?? [],
+      getPzCategoryFiles: (country) =>
+        get().filesByCountry[country]?.pzCategoryFiles ?? [],
+      getEpCategoryFiles: (country) =>
+        get().filesByCountry[country]?.epCategoryFiles ?? [],
       getAnalysisResult: (country) =>
         get().filesByCountry[country]?.analysisResult ?? null,
       getSelectedPrefixes: (country) =>
         get().filesByCountry[country]?.selectedPrefixes ?? [],
-      setAllListingsFile: (country, filename) =>
-        set((state) => ({
-          filesByCountry: {
-            ...state.filesByCountry,
-            [country]: {
-              ...createEmptyCountryState(),
-              ...state.filesByCountry[country],
-              allListingsFile: filename,
-            },
-          },
-        })),
-      setCategoryFiles: (country, filenames) =>
-        set((state) => ({
-          filesByCountry: {
-            ...state.filesByCountry,
-            [country]: {
-              ...createEmptyCountryState(),
-              ...state.filesByCountry[country],
-              categoryFiles: dedupeFilenames(filenames),
-            },
-          },
-        })),
-      addCategoryFile: (country, filename) =>
+      addAllListingsFile: (country, filename) =>
         set((state) => {
           const countryState = state.filesByCountry[country] ?? createEmptyCountryState();
           return {
@@ -89,14 +74,29 @@ export const useUploadStore = create<UploadStore>()(
               ...state.filesByCountry,
               [country]: {
                 ...countryState,
-                categoryFiles: countryState.categoryFiles.includes(filename)
-                  ? countryState.categoryFiles
-                  : [...countryState.categoryFiles, filename],
+                allListingsFiles: dedupeFilenames([...countryState.allListingsFiles, filename]),
               },
             },
           };
         }),
-      removeCategoryFile: (country, filename) =>
+      removeAllListingsFile: (country, filename) =>
+        set((state) => {
+          const countryState = state.filesByCountry[country] ?? createEmptyCountryState();
+          const nextAllListingsFiles = countryState.allListingsFiles.filter((file) => file !== filename);
+          const analysisMatchesDeletedFile = countryState.analysisResult?.filename === filename;
+          return {
+            filesByCountry: {
+              ...state.filesByCountry,
+              [country]: {
+                ...countryState,
+                allListingsFiles: nextAllListingsFiles,
+                analysisResult: analysisMatchesDeletedFile ? null : countryState.analysisResult,
+                selectedPrefixes: analysisMatchesDeletedFile ? [] : countryState.selectedPrefixes,
+              },
+            },
+          };
+        }),
+      addPzCategoryFile: (country, filename) =>
         set((state) => {
           const countryState = state.filesByCountry[country] ?? createEmptyCountryState();
           return {
@@ -104,7 +104,46 @@ export const useUploadStore = create<UploadStore>()(
               ...state.filesByCountry,
               [country]: {
                 ...countryState,
-                categoryFiles: countryState.categoryFiles.filter((file) => file !== filename),
+                pzCategoryFiles: dedupeFilenames([...countryState.pzCategoryFiles, filename]),
+              },
+            },
+          };
+        }),
+      removePzCategoryFile: (country, filename) =>
+        set((state) => {
+          const countryState = state.filesByCountry[country] ?? createEmptyCountryState();
+          return {
+            filesByCountry: {
+              ...state.filesByCountry,
+              [country]: {
+                ...countryState,
+                pzCategoryFiles: countryState.pzCategoryFiles.filter((file) => file !== filename),
+              },
+            },
+          };
+        }),
+      addEpCategoryFile: (country, filename) =>
+        set((state) => {
+          const countryState = state.filesByCountry[country] ?? createEmptyCountryState();
+          return {
+            filesByCountry: {
+              ...state.filesByCountry,
+              [country]: {
+                ...countryState,
+                epCategoryFiles: dedupeFilenames([...countryState.epCategoryFiles, filename]),
+              },
+            },
+          };
+        }),
+      removeEpCategoryFile: (country, filename) =>
+        set((state) => {
+          const countryState = state.filesByCountry[country] ?? createEmptyCountryState();
+          return {
+            filesByCountry: {
+              ...state.filesByCountry,
+              [country]: {
+                ...countryState,
+                epCategoryFiles: countryState.epCategoryFiles.filter((file) => file !== filename),
               },
             },
           };
@@ -133,19 +172,31 @@ export const useUploadStore = create<UploadStore>()(
         })),
       syncUploadedFiles: (country, files) => {
         const countryState = get().filesByCountry[country] ?? createEmptyCountryState();
-        const currentAllListingsFile = countryState.allListingsFile;
-        const nextAllListingsFile = files.all_listings[0] ?? null;
-        const nextCategoryFiles = dedupeFilenames(files.category_listings);
+        const currentAllListingsFiles = dedupeFilenames(countryState.allListingsFiles);
+        const nextAllListingsFiles = dedupeFilenames(files.all_listings);
+        const nextPzCategoryFiles = dedupeFilenames(files.pz_category_listings);
+        const nextEpCategoryFiles = dedupeFilenames(files.ep_category_listings);
         const allListingsMissing =
-          currentAllListingsFile !== null &&
-          !files.all_listings.includes(currentAllListingsFile);
+          currentAllListingsFiles.length > 0 &&
+          currentAllListingsFiles.some((filename) => !nextAllListingsFiles.includes(filename));
         const allListingsChanged =
-          currentAllListingsFile !== null &&
-          currentAllListingsFile !== nextAllListingsFile;
-        const missingCategoryFiles = countryState.categoryFiles.filter(
-          (filename) => !nextCategoryFiles.includes(filename)
-        );
-        const preserveAnalysis = currentAllListingsFile === nextAllListingsFile;
+          currentAllListingsFiles.length > 0 &&
+          (
+            currentAllListingsFiles.length !== nextAllListingsFiles.length ||
+            currentAllListingsFiles.some((filename, index) => filename !== nextAllListingsFiles[index])
+          );
+        const currentCategoryFiles = dedupeFilenames([
+          ...countryState.pzCategoryFiles,
+          ...countryState.epCategoryFiles,
+        ]);
+        const nextCategoryFiles = dedupeFilenames([
+          ...nextPzCategoryFiles,
+          ...nextEpCategoryFiles,
+        ]);
+        const missingCategoryFiles = currentCategoryFiles.filter((filename) => !nextCategoryFiles.includes(filename));
+        const analysisFilename = countryState.analysisResult?.filename?.trim();
+        const preserveAnalysis =
+          Boolean(analysisFilename) && nextAllListingsFiles.includes(analysisFilename ?? '');
 
         set((state) => ({
           filesByCountry: {
@@ -153,8 +204,9 @@ export const useUploadStore = create<UploadStore>()(
             [country]: {
               ...createEmptyCountryState(),
               ...countryState,
-              allListingsFile: nextAllListingsFile,
-              categoryFiles: nextCategoryFiles,
+              allListingsFiles: nextAllListingsFiles,
+              pzCategoryFiles: nextPzCategoryFiles,
+              epCategoryFiles: nextEpCategoryFiles,
               analysisResult: preserveAnalysis ? countryState.analysisResult : null,
               selectedPrefixes: preserveAnalysis ? countryState.selectedPrefixes : [],
             },
@@ -175,6 +227,30 @@ export const useUploadStore = create<UploadStore>()(
           },
         })),
     }),
-    { name: 'amzeu-upload-store' }
+    {
+      name: 'amzeu-upload-store',
+      version: 2,
+      migrate: (state, version) => {
+        if (!state || typeof state !== 'object') {
+          return state;
+        }
+
+        if (version === 0 || version === 1) {
+          const persistedState = state as {
+            filesByCountry?: Record<string, Record<string, unknown>>;
+          };
+
+          if (persistedState.filesByCountry) {
+            for (const countryState of Object.values(persistedState.filesByCountry)) {
+              delete countryState.categoryFiles;
+              countryState.pzCategoryFiles = [];
+              countryState.epCategoryFiles = [];
+            }
+          }
+        }
+
+        return state;
+      },
+    }
   )
 );
