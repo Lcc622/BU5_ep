@@ -23,9 +23,11 @@ export function ProcessButton() {
   const productPrefix = useProcessStore((state) => state.productPrefix);
   const countryMeta = getCountryMeta(country);
 
-  const { getAllListingsFile, getCategoryFiles, getSelectedPrefixes } = useUploadStore();
-  const allListingsFile = getAllListingsFile(country);
-  const categoryListingsFiles = getCategoryFiles(country);
+  const { getAllListingsFiles, getPzCategoryFiles, getEpCategoryFiles, getSelectedPrefixes } = useUploadStore();
+  const allListingsFiles = getAllListingsFiles(country);
+  const pzCategoryFiles = getPzCategoryFiles(country);
+  const epCategoryFiles = getEpCategoryFiles(country);
+  const categoryListingsFiles = [...pzCategoryFiles, ...epCategoryFiles];
   const selectedPrefixes = getSelectedPrefixes(country);
   const [progress, setProgress] = useState(0);
   const [downloadFile, setDownloadFile] = useState<string | null>(null);
@@ -34,11 +36,11 @@ export function ProcessButton() {
 
   const selectedColors = parseColorCodes(colorList);
   const validationMessages: string[] = [];
-  if (!allListingsFile) {
+  if (allListingsFiles.length === 0) {
     validationMessages.push('请先上传 All Listings 文件');
   }
-  if (categoryListingsFiles.length < countryMeta.categoryReportCount) {
-    validationMessages.push(`当前国家还缺少 ${countryMeta.categoryReportCount - categoryListingsFiles.length} 份 Category 文件`);
+  if (categoryListingsFiles.length < 1) {
+    validationMessages.push('请至少上传 1 份 Category 文件');
   }
   if (selectedPrefixes.length === 0) {
     validationMessages.push('请至少选择一个前缀');
@@ -51,7 +53,7 @@ export function ProcessButton() {
     mutationFn: async () => {
       const response = await excelApi.startProcess({
         country,
-        all_listings_file: allListingsFile ?? '',
+        all_listings_files: allListingsFiles,
         category_files: categoryListingsFiles,
         selected_prefixes: selectedPrefixes,
         target_colors: selectedColors,
@@ -198,7 +200,7 @@ export function ProcessButton() {
         </div>
         <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
           <div className="text-xs font-bold uppercase tracking-[0.18em] text-steel">Files</div>
-          <div className="mt-2 text-sm text-ink">All Listings: {allListingsFile ?? '未上传'}</div>
+          <div className="mt-2 text-sm text-ink">All Listings: {allListingsFiles.length} 份</div>
           <div className="mt-1 text-sm text-steel">
             Category: {categoryListingsFiles.length}/{countryMeta.categoryReportCount}
           </div>
