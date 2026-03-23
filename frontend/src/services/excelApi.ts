@@ -34,10 +34,15 @@ export const excelApi = {
     return data;
   },
 
-  async uploadCategoryListings(file: File, country: Country): Promise<{ success: boolean; filename: string }> {
+  async uploadCategoryListings(
+    file: File,
+    country: Country,
+    storeType: 'pz' | 'ep'
+  ): Promise<{ success: boolean; filename: string }> {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('country', country);
+    formData.append('store_type', storeType);
 
     const { data } = await apiClient.post<{ success: boolean; filename: string }>(
       '/api/excel/upload/category',
