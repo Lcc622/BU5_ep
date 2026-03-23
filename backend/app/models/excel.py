@@ -5,10 +5,9 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import BaseModel, Field, field_validator
 
 from app.config import Country as CountryEnum
-from app.config import COUNTRY_PROFILES
 
 
 class SKUInfo(BaseModel):
@@ -46,7 +45,8 @@ class ProcessRequest(BaseModel):
     """异步 Excel 处理请求。"""
 
     country: CountryEnum = Field(..., description="目标国家")
-    all_listings_file: str = Field(..., min_length=1, description="已上传的 all listings 文件名")
+    all_listings_files: list[str] = Field(..., min_length=1, description="已上传的 all listings 文件名列表")
+    fr_all_listings_file: str | None = Field(None, description="已上传的 FR all listings 文件名")
     category_files: list[str] = Field(..., min_length=1, description="已上传的 category 文件名列表")
     selected_prefixes: list[str] = Field(..., min_length=1, description="需要处理的 SKU 前缀")
     target_colors: list[str] = Field(..., min_length=1, description="目标颜色列表")
@@ -55,7 +55,7 @@ class ProcessRequest(BaseModel):
     size_step: int = Field(..., ge=1, description="尺码步长")
     mode: Literal["add-color", "add-code"] = Field(..., description="处理模式")
 
-    @field_validator("all_listings_file", "start_size", "end_size")
+    @field_validator("start_size", "end_size")
     @classmethod
     def strip_required_value(cls, value: str) -> str:
         stripped = value.strip()
@@ -63,24 +63,13 @@ class ProcessRequest(BaseModel):
             raise ValueError("value cannot be blank")
         return stripped
 
-    @field_validator("category_files", "selected_prefixes", "target_colors")
+    @field_validator("all_listings_files", "category_files", "selected_prefixes", "target_colors")
     @classmethod
     def strip_list_values(cls, values: list[str]) -> list[str]:
         normalized = [item.strip() for item in values if str(item).strip()]
         if not normalized:
             raise ValueError("list cannot be empty")
         return normalized
-
-    @model_validator(mode="after")
-    def validate_category_file_count(self) -> "ProcessRequest":
-        expected = COUNTRY_PROFILES[self.country].required_category_reports
-        if len(self.category_files) != expected:
-            raise ValueError(
-                f"{self.country.value} requires {expected} category file(s), "
-                f"got {len(self.category_files)}."
-            )
-        return self
-
 
 class UploadResponse(BaseModel):
     """基础上传响应。"""
@@ -93,7 +82,8 @@ class UploadedFilesResponse(BaseModel):
     """已上传文件列表。"""
 
     all_listings: list[str]
-    category_listings: list[str]
+    pz_category_listings: list[str]
+    ep_category_listings: list[str]
 
 
 class ProcessStartResponse(BaseModel):
@@ -132,4 +122,3 @@ class ResultsListResponse(BaseModel):
     """结果文件列表响应。"""
 
     files: list[ResultFileInfo]
-
