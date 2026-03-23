@@ -302,12 +302,12 @@ export function FileUploader() {
                       key={filename}
                       className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm"
                     >
-                      <span className="font-medium text-ink">{filename}</span>
+                      <span className="min-w-0 truncate font-medium text-ink">{filename}</span>
                       <button
                         type="button"
                         onClick={() => void handleAllListingsFileDelete(filename)}
                         disabled={isDeleting}
-                        className="text-sm font-semibold text-slate-500 transition hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-60"
+                        className="shrink-0 text-sm font-semibold text-slate-500 transition hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-60"
                       >
                         {isDeleting ? '删除中...' : '删除'}
                       </button>
@@ -363,12 +363,12 @@ export function FileUploader() {
                             key={filename}
                             className="flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm"
                           >
-                            <span className="font-medium text-ink">{filename}</span>
+                            <span className="min-w-0 truncate font-medium text-ink">{filename}</span>
                             <button
                               type="button"
                               onClick={() => void handlePzCategoryFileDelete(filename)}
                               disabled={isDeleting}
-                              className="text-sm font-semibold text-slate-500 transition hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-60"
+                              className="shrink-0 text-sm font-semibold text-slate-500 transition hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-60"
                             >
                               {isDeleting ? '删除中...' : '删除'}
                             </button>
@@ -414,12 +414,12 @@ export function FileUploader() {
                             key={filename}
                             className="flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm"
                           >
-                            <span className="font-medium text-ink">{filename}</span>
+                            <span className="min-w-0 truncate font-medium text-ink">{filename}</span>
                             <button
                               type="button"
                               onClick={() => void handleEpCategoryFileDelete(filename)}
                               disabled={isDeleting}
-                              className="text-sm font-semibold text-slate-500 transition hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-60"
+                              className="shrink-0 text-sm font-semibold text-slate-500 transition hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-60"
                             >
                               {isDeleting ? '删除中...' : '删除'}
                             </button>
@@ -464,12 +464,12 @@ export function FileUploader() {
                           key={filename}
                           className="flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm"
                         >
-                          <span className="font-medium text-ink">{filename}</span>
+                          <span className="min-w-0 truncate font-medium text-ink">{filename}</span>
                           <button
                             type="button"
                             onClick={() => void handlePzCategoryFileDelete(filename)}
                             disabled={isDeleting}
-                            className="text-sm font-semibold text-slate-500 transition hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-60"
+                            className="shrink-0 text-sm font-semibold text-slate-500 transition hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-60"
                           >
                             {isDeleting ? '删除中...' : '删除'}
                           </button>
