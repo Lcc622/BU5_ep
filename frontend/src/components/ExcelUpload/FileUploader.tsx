@@ -19,9 +19,9 @@ const buildSyncMessages = ({
   const messages: string[] = [];
 
   if (allListingsMissing) {
-    messages.push('之前选择的 All Listings 文件已不存在，已按服务器状态清空前缀分析，请重新上传。');
+    messages.push('之前选择的部分 All Listings 文件已不存在，已按服务器状态清空前缀分析，请重新上传。');
   } else if (allListingsChanged) {
-    messages.push('检测到服务器上的 All Listings 已更新，前缀分析已清空，请重新上传或重新确认。');
+    messages.push('检测到服务器上的 All Listings 列表已变化，前缀分析已清空，请重新上传或重新确认。');
   }
 
   if (missingCategoryFiles.length > 0) {
@@ -36,25 +36,33 @@ export function FileUploader() {
   const countryMeta = getCountryMeta(country);
   const queryClient = useQueryClient();
   const {
-    getAllListingsFile,
-    getCategoryFiles,
+    getAllListingsFiles,
+    getPzCategoryFiles,
+    getEpCategoryFiles,
     getAnalysisResult,
     getSelectedPrefixes,
-    setAllListingsFile,
-    addCategoryFile,
-    removeCategoryFile,
+    addAllListingsFile,
+    removeAllListingsFile,
+    addPzCategoryFile,
+    removePzCategoryFile,
+    addEpCategoryFile,
+    removeEpCategoryFile,
     setAnalysisResult,
     setSelectedPrefixes,
     syncUploadedFiles,
   } = useUploadStore();
-  const allListingsFile = getAllListingsFile(country);
-  const categoryListingsFiles = getCategoryFiles(country);
+  const allListingsFiles = getAllListingsFiles(country);
+  const pzCategoryFiles = getPzCategoryFiles(country);
+  const epCategoryFiles = getEpCategoryFiles(country);
   const analysisResult = getAnalysisResult(country);
   const selectedPrefixes = getSelectedPrefixes(country);
 
   const [isUploadingAll, setIsUploadingAll] = useState(false);
-  const [isUploadingCategory, setIsUploadingCategory] = useState(false);
-  const [deletingCategoryFiles, setDeletingCategoryFiles] = useState<Set<string>>(new Set());
+  const [isUploadingPzCategory, setIsUploadingPzCategory] = useState(false);
+  const [isUploadingEpCategory, setIsUploadingEpCategory] = useState(false);
+  const [deletingAllListingsFiles, setDeletingAllListingsFiles] = useState<Set<string>>(new Set());
+  const [deletingPzCategoryFiles, setDeletingPzCategoryFiles] = useState<Set<string>>(new Set());
+  const [deletingEpCategoryFiles, setDeletingEpCategoryFiles] = useState<Set<string>>(new Set());
   const [manualPrefix, setManualPrefix] = useState('');
   const [syncMessages, setSyncMessages] = useState<string[]>([]);
   const syncSignatureRef = useRef<Record<string, string>>({});
@@ -101,12 +109,8 @@ export function FileUploader() {
     if (event.key === 'Enter') handleAddManualPrefix();
   };
   const allInputRef = useRef<HTMLInputElement | null>(null);
-  const categoryInputRef = useRef<HTMLInputElement | null>(null);
-
-  const remainingCategoryCount = Math.max(
-    countryMeta.categoryReportCount - categoryListingsFiles.length,
-    0
-  );
+  const pzCategoryInputRef = useRef<HTMLInputElement | null>(null);
+  const epCategoryInputRef = useRef<HTMLInputElement | null>(null);
 
   const handleAllListingsUpload = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -114,16 +118,8 @@ export function FileUploader() {
 
     setIsUploadingAll(true);
     try {
-      if (allListingsFile) {
-        try {
-          await excelApi.deleteUploadedFile(allListingsFile);
-        } catch {
-          // Ignore cleanup failures before replacing the file.
-        }
-      }
-
       const result = await excelApi.uploadAllListings(file, country);
-      setAllListingsFile(country, result.filename ?? file.name);
+      addAllListingsFile(country, result.filename ?? file.name);
       setAnalysisResult(country, {
         filename: result.filename ?? file.name,
         success: result.success,
@@ -145,47 +141,111 @@ export function FileUploader() {
     }
   };
 
-  const handleCategoryUpload = async (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    if (categoryListingsFiles.length >= countryMeta.categoryReportCount) {
-      toast.error(`当前国家最多上传 ${countryMeta.categoryReportCount} 张 Category Listings`);
-      event.target.value = '';
+  const handleAllListingsFileDelete = async (filename: string) => {
+    if (deletingAllListingsFiles.has(filename)) {
       return;
     }
 
-    setIsUploadingCategory(true);
-    try {
-      const result = await excelApi.uploadCategoryListings(file, country);
-      addCategoryFile(country, result.filename ?? file.name);
-      setSyncMessages([]);
-      syncSignatureRef.current[country] = '';
-      void queryClient.invalidateQueries({ queryKey: ['excel-uploaded-files', country] });
-      toast.success('Category Listings Report 已上传');
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : '上传失败');
-    } finally {
-      setIsUploadingCategory(false);
-      event.target.value = '';
-    }
-  };
-
-  const handleCategoryFileDelete = async (filename: string) => {
-    if (deletingCategoryFiles.has(filename)) {
-      return;
-    }
-
-    setDeletingCategoryFiles((current) => new Set(current).add(filename));
+    setDeletingAllListingsFiles((current) => new Set(current).add(filename));
     try {
       await excelApi.deleteUploadedFile(filename);
-      removeCategoryFile(country, filename);
+      removeAllListingsFile(country, filename);
+      setSyncMessages([]);
       syncSignatureRef.current[country] = '';
       void queryClient.invalidateQueries({ queryKey: ['excel-uploaded-files', country] });
       toast.success('文件已删除');
     } catch (error) {
       toast.error(error instanceof Error ? error.message : '删除失败');
     } finally {
-      setDeletingCategoryFiles((current) => {
+      setDeletingAllListingsFiles((current) => {
+        const next = new Set(current);
+        next.delete(filename);
+        return next;
+      });
+    }
+  };
+
+  const handlePzCategoryUpload = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingPzCategory(true);
+    try {
+      const result = await excelApi.uploadCategoryListings(file, country, 'pz');
+      addPzCategoryFile(country, result.filename ?? file.name);
+      setSyncMessages([]);
+      syncSignatureRef.current[country] = '';
+      void queryClient.invalidateQueries({ queryKey: ['excel-uploaded-files', country] });
+      toast.success('PZ Category Listings Report 已上传');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : '上传失败');
+    } finally {
+      setIsUploadingPzCategory(false);
+      event.target.value = '';
+    }
+  };
+
+  const handlePzCategoryFileDelete = async (filename: string) => {
+    if (deletingPzCategoryFiles.has(filename)) {
+      return;
+    }
+
+    setDeletingPzCategoryFiles((current) => new Set(current).add(filename));
+    try {
+      await excelApi.deleteUploadedFile(filename);
+      removePzCategoryFile(country, filename);
+      setSyncMessages([]);
+      syncSignatureRef.current[country] = '';
+      void queryClient.invalidateQueries({ queryKey: ['excel-uploaded-files', country] });
+      toast.success('文件已删除');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : '删除失败');
+    } finally {
+      setDeletingPzCategoryFiles((current) => {
+        const next = new Set(current);
+        next.delete(filename);
+        return next;
+      });
+    }
+  };
+
+  const handleEpCategoryUpload = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingEpCategory(true);
+    try {
+      const result = await excelApi.uploadCategoryListings(file, country, 'ep');
+      addEpCategoryFile(country, result.filename ?? file.name);
+      setSyncMessages([]);
+      syncSignatureRef.current[country] = '';
+      void queryClient.invalidateQueries({ queryKey: ['excel-uploaded-files', country] });
+      toast.success('EP Category Listings Report 已上传');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : '上传失败');
+    } finally {
+      setIsUploadingEpCategory(false);
+      event.target.value = '';
+    }
+  };
+
+  const handleEpCategoryFileDelete = async (filename: string) => {
+    if (deletingEpCategoryFiles.has(filename)) {
+      return;
+    }
+
+    setDeletingEpCategoryFiles((current) => new Set(current).add(filename));
+    try {
+      await excelApi.deleteUploadedFile(filename);
+      removeEpCategoryFile(country, filename);
+      setSyncMessages([]);
+      syncSignatureRef.current[country] = '';
+      void queryClient.invalidateQueries({ queryKey: ['excel-uploaded-files', country] });
+      toast.success('文件已删除');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : '删除失败');
+    } finally {
+      setDeletingEpCategoryFiles((current) => {
         const next = new Set(current);
         next.delete(filename);
         return next;
@@ -211,7 +271,9 @@ export function FileUploader() {
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
                 <div className="text-sm font-bold text-ink">All Listings Report (Custom)</div>
-                <div className="mt-1 text-sm text-steel">每个国家仅需 1 张，上传后将返回可选前缀与颜色分布。</div>
+                <div className="mt-1 text-sm text-steel">
+                  可上传多张，系统会合并处理；最近上传的文件会刷新可选前缀与颜色分布。
+                </div>
               </div>
               <button
                 type="button"
@@ -219,7 +281,7 @@ export function FileUploader() {
                 disabled={isUploadingAll}
                 className="rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-60"
               >
-                {isUploadingAll ? '上传中...' : allListingsFile ? '替换文件' : '选择文件'}
+                {isUploadingAll ? '上传中...' : '继续上传'}
               </button>
             </div>
             <input
@@ -229,42 +291,12 @@ export function FileUploader() {
               className="hidden"
               onChange={handleAllListingsUpload}
             />
-            <div className="mt-3 text-sm text-steel">
-              当前文件：<span className="font-semibold text-ink">{allListingsFile ?? '未上传'}</span>
-            </div>
-          </div>
-
-          <div className="rounded-3xl border border-dashed border-slate-300 bg-slate-50 p-5">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <div>
-                <div className="text-sm font-bold text-ink">Category Listings Reports</div>
-                <div className="mt-1 text-sm text-steel">
-                  当前国家需要 {countryMeta.categoryReportCount} 张，文件名前缀不限制，还需上传 {remainingCategoryCount} 张。
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => categoryInputRef.current?.click()}
-                disabled={isUploadingCategory || remainingCategoryCount === 0}
-                className="rounded-full bg-signal px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-60"
-              >
-                {isUploadingCategory ? '上传中...' : remainingCategoryCount === 0 ? '已满足数量' : '继续上传'}
-              </button>
-            </div>
-            <input
-              ref={categoryInputRef}
-              type="file"
-              accept=".xlsx,.xlsm,.xls"
-              className="hidden"
-              onChange={handleCategoryUpload}
-            />
-
             <div className="mt-4 space-y-2">
-              {categoryListingsFiles.length === 0 ? (
-                <div className="text-sm text-steel">尚未上传 Category Listings Reports。</div>
+              {allListingsFiles.length === 0 ? (
+                <div className="text-sm text-steel">尚未上传 All Listings Reports。</div>
               ) : (
-                categoryListingsFiles.map((filename) => {
-                  const isDeleting = deletingCategoryFiles.has(filename);
+                allListingsFiles.map((filename) => {
+                  const isDeleting = deletingAllListingsFiles.has(filename);
                   return (
                     <div
                       key={filename}
@@ -273,7 +305,7 @@ export function FileUploader() {
                       <span className="font-medium text-ink">{filename}</span>
                       <button
                         type="button"
-                        onClick={() => void handleCategoryFileDelete(filename)}
+                        onClick={() => void handleAllListingsFileDelete(filename)}
                         disabled={isDeleting}
                         className="text-sm font-semibold text-slate-500 transition hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-60"
                       >
@@ -284,6 +316,170 @@ export function FileUploader() {
                 })
               )}
             </div>
+          </div>
+
+          <div className="rounded-3xl border border-dashed border-slate-300 bg-slate-50 p-5">
+            <div>
+              <div className="text-sm font-bold text-ink">Category Listings Reports</div>
+              <div className="mt-1 text-sm text-steel">
+                当前国家目标 {countryMeta.categoryReportCount} 张，至少上传 1 张即可处理，文件名前缀不限制。
+              </div>
+            </div>
+
+            {countryMeta.perStoreCategoryCount > 0 ? (
+              <div className="mt-4 grid gap-4 md:grid-cols-2">
+                <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <div className="text-sm font-bold text-ink">PZ 店铺</div>
+                      <div className="mt-1 text-xs text-steel">
+                        每店目标 {countryMeta.perStoreCategoryCount} 张，可继续追加上传。
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => pzCategoryInputRef.current?.click()}
+                      disabled={isUploadingPzCategory}
+                      className="rounded-full bg-signal px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-60"
+                    >
+                      {isUploadingPzCategory ? '上传中...' : '上传 PZ 文件'}
+                    </button>
+                  </div>
+                  <input
+                    ref={pzCategoryInputRef}
+                    type="file"
+                    accept=".xlsx,.xlsm,.xls"
+                    className="hidden"
+                    onChange={handlePzCategoryUpload}
+                  />
+                  <div className="mt-4 space-y-2">
+                    {pzCategoryFiles.length === 0 ? (
+                      <div className="text-sm text-steel">尚未上传 PZ Category Listings Reports。</div>
+                    ) : (
+                      pzCategoryFiles.map((filename) => {
+                        const isDeleting = deletingPzCategoryFiles.has(filename);
+                        return (
+                          <div
+                            key={filename}
+                            className="flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm"
+                          >
+                            <span className="font-medium text-ink">{filename}</span>
+                            <button
+                              type="button"
+                              onClick={() => void handlePzCategoryFileDelete(filename)}
+                              disabled={isDeleting}
+                              className="text-sm font-semibold text-slate-500 transition hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                              {isDeleting ? '删除中...' : '删除'}
+                            </button>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <div className="text-sm font-bold text-ink">EP 店铺</div>
+                      <div className="mt-1 text-xs text-steel">
+                        每店目标 {countryMeta.perStoreCategoryCount} 张，可继续追加上传。
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => epCategoryInputRef.current?.click()}
+                      disabled={isUploadingEpCategory}
+                      className="rounded-full bg-signal px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-60"
+                    >
+                      {isUploadingEpCategory ? '上传中...' : '上传 EP 文件'}
+                    </button>
+                  </div>
+                  <input
+                    ref={epCategoryInputRef}
+                    type="file"
+                    accept=".xlsx,.xlsm,.xls"
+                    className="hidden"
+                    onChange={handleEpCategoryUpload}
+                  />
+                  <div className="mt-4 space-y-2">
+                    {epCategoryFiles.length === 0 ? (
+                      <div className="text-sm text-steel">尚未上传 EP Category Listings Reports。</div>
+                    ) : (
+                      epCategoryFiles.map((filename) => {
+                        const isDeleting = deletingEpCategoryFiles.has(filename);
+                        return (
+                          <div
+                            key={filename}
+                            className="flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm"
+                          >
+                            <span className="font-medium text-ink">{filename}</span>
+                            <button
+                              type="button"
+                              onClick={() => void handleEpCategoryFileDelete(filename)}
+                              disabled={isDeleting}
+                              className="text-sm font-semibold text-slate-500 transition hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                              {isDeleting ? '删除中...' : '删除'}
+                            </button>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-4">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <div className="text-sm font-bold text-ink">Category Listings Reports</div>
+                    <div className="mt-1 text-xs text-steel">UK 仅使用 PZ 店铺分类文件。</div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => pzCategoryInputRef.current?.click()}
+                    disabled={isUploadingPzCategory}
+                    className="rounded-full bg-signal px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-60"
+                  >
+                    {isUploadingPzCategory ? '上传中...' : '继续上传'}
+                  </button>
+                </div>
+                <input
+                  ref={pzCategoryInputRef}
+                  type="file"
+                  accept=".xlsx,.xlsm,.xls"
+                  className="hidden"
+                  onChange={handlePzCategoryUpload}
+                />
+                <div className="mt-4 space-y-2">
+                  {pzCategoryFiles.length === 0 ? (
+                    <div className="text-sm text-steel">尚未上传 Category Listings Reports。</div>
+                  ) : (
+                    pzCategoryFiles.map((filename) => {
+                      const isDeleting = deletingPzCategoryFiles.has(filename);
+                      return (
+                        <div
+                          key={filename}
+                          className="flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm"
+                        >
+                          <span className="font-medium text-ink">{filename}</span>
+                          <button
+                            type="button"
+                            onClick={() => void handlePzCategoryFileDelete(filename)}
+                            disabled={isDeleting}
+                            className="text-sm font-semibold text-slate-500 transition hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-60"
+                          >
+                            {isDeleting ? '删除中...' : '删除'}
+                          </button>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -330,7 +526,7 @@ export function FileUploader() {
             <span className="text-xs text-steel self-center">{selectedPrefixes.length} / {analysisResult.prefixes.length} 已选</span>
           </div>
         )}
-        <div className="mt-3 flex flex-wrap gap-2">
+        <div className="mt-3 flex max-h-52 flex-wrap gap-2 overflow-y-auto pr-1">
           {analysisResult && analysisResult.prefixes.length > 0 ? (
             analysisResult.prefixes.map((prefix) => {
               const active = selectedPrefixes.includes(prefix);
@@ -383,7 +579,7 @@ export function FileUploader() {
           <div className="text-xs font-bold uppercase tracking-[0.24em] text-steel">Upload Rules</div>
           <ul className="mt-3 space-y-2 text-sm text-ink">
             <li>All Listings: 1 file</li>
-            <li>Category Listings: {countryMeta.categoryReportCount} files</li>
+            <li>Category Listings: at least 1 file, target {countryMeta.categoryReportCount} files</li>
             <li>EU 文件名自由，不强制固定前缀</li>
           </ul>
         </div>
