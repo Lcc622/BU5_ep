@@ -6,15 +6,17 @@ import { apiClient } from '../lib/axios';
 
 interface UploadedFiles {
   all_listings: string[];
-  category_listings: string[];
+  pz_category_listings: string[];
+  ep_category_listings: string[];
 }
 
 export default function FollowSell() {
   const [country, setCountry] = useState('UK');
-  const [allListingsFile, setAllListingsFile] = useState('');
+  const [allListingsFiles, setAllListingsFiles] = useState<string[]>([]);
+  const [frAllListingsFile, setFrAllListingsFile] = useState('');
   const [categoryFiles, setCategoryFiles] = useState<string[]>([]);
   const [skuText, setSkuText] = useState('');
-  const [uploadedFiles, setUploadedFiles] = useState<UploadedFiles>({ all_listings: [], category_listings: [] });
+  const [uploadedFiles, setUploadedFiles] = useState<UploadedFiles>({ all_listings: [], pz_category_listings: [], ep_category_listings: [] });
   const [jobStatus, setJobStatus] = useState<FollowSellJobStatus | null>(null);
   const [isRunning, setIsRunning] = useState(false);
   const [error, setError] = useState('');
@@ -50,9 +52,13 @@ export default function FollowSell() {
   const handleSubmit = async () => {
     setError('');
     const newSkus = skuText.split('\n').map(s => s.trim()).filter(Boolean);
-    if (!allListingsFile) { setError('请选择 All Listings 文件'); return; }
-    if (categoryFiles.length !== requiredCategoryCount) {
-      setError(`${country} 需要选择 ${requiredCategoryCount} 张 Category 文件`); return;
+    if (allListingsFiles.length === 0) { setError('请选择至少一张 All Listings 文件'); return; }
+    if (['DE', 'IT', 'ES'].includes(country) && !frAllListingsFile) {
+      setError('DE/IT/ES 跟卖需要选择法国 All Listings 文件（用于获取 FR ASIN）');
+      return;
+    }
+    if (categoryFiles.length < 1) {
+      setError('请至少选择 1 张 Category 文件'); return;
     }
     if (newSkus.length === 0) { setError('请输入至少一个新款 SKU'); return; }
 
@@ -60,9 +66,10 @@ export default function FollowSell() {
     try {
       const job = await followSellApi.startProcess({
         country,
-        all_listings_file: allListingsFile,
+        all_listings_files: allListingsFiles,
         category_files: categoryFiles,
         new_skus: newSkus,
+        fr_all_listings_file: ['DE', 'IT', 'ES'].includes(country) ? frAllListingsFile : undefined,
       });
       setJobStatus(job);
       poll(job.job_id);
@@ -79,6 +86,12 @@ export default function FollowSell() {
     );
   };
 
+  const toggleAllListingsFile = (filename: string) => {
+    setAllListingsFiles((prev) =>
+      prev.includes(filename) ? prev.filter((item) => item !== filename) : [...prev, filename]
+    );
+  };
+
   return (
     <div className="max-w-2xl mx-auto p-6 space-y-6">
       <h1 className="text-2xl font-bold text-gray-800">跟卖上新</h1>
@@ -92,7 +105,12 @@ export default function FollowSell() {
           <select
             className="border rounded px-3 py-2 w-full"
             value={country}
-            onChange={e => { setCountry(e.target.value); setCategoryFiles([]); }}
+            onChange={e => {
+              setCountry(e.target.value);
+              setAllListingsFiles([]);
+              setCategoryFiles([]);
+              setFrAllListingsFile('');
+            }}
           >
             {COUNTRIES.map(c => (
               <option key={c.code} value={c.code}>{c.flag} {c.label}</option>
@@ -101,25 +119,51 @@ export default function FollowSell() {
         </div>
 
         <div>
-          <label className="block text-sm text-gray-600 mb-1">All Listings Report</label>
-          <select
-            className="border rounded px-3 py-2 w-full"
-            value={allListingsFile}
-            onChange={e => setAllListingsFile(e.target.value)}
-          >
-            <option value="">-- 请选择 --</option>
+          <label className="block text-sm text-gray-600 mb-1">
+            All Listings Report（可选多张，已选 {allListingsFiles.length} 张）
+          </label>
+          <div className="space-y-1 max-h-40 overflow-y-auto border rounded p-2">
             {uploadedFiles.all_listings.map(f => (
-              <option key={f} value={f}>{f}</option>
+              <label key={f} className="flex items-center gap-2 cursor-pointer text-sm">
+                <input
+                  type="checkbox"
+                  checked={allListingsFiles.includes(f)}
+                  onChange={() => toggleAllListingsFile(f)}
+                />
+                {f}
+              </label>
             ))}
-          </select>
+            {uploadedFiles.all_listings.length === 0 && (
+              <p className="text-gray-400 text-sm">暂无已上传的 All Listings 文件</p>
+            )}
+          </div>
         </div>
+
+        {['DE', 'IT', 'ES'].includes(country) && (
+          <div>
+            <label className="block text-sm text-gray-600 mb-1">
+              法国 All Listings Report <span className="text-red-500">*</span>
+              <span className="text-xs text-gray-400 ml-1">（DE/IT/ES 跟卖需要 FR ASIN）</span>
+            </label>
+            <select
+              className="border rounded px-3 py-2 w-full"
+              value={frAllListingsFile}
+              onChange={e => setFrAllListingsFile(e.target.value)}
+            >
+              <option value="">-- 请选择法国 All Listings --</option>
+              {uploadedFiles.all_listings.map(f => (
+                <option key={f} value={f}>{f}</option>
+              ))}
+            </select>
+          </div>
+        )}
 
         <div>
           <label className="block text-sm text-gray-600 mb-1">
-            Category Listings（需选 {requiredCategoryCount} 张，已选 {categoryFiles.length} 张）
+            Category Listings（至少选 1 张，目标 {requiredCategoryCount} 张，已选 {categoryFiles.length} 张）
           </label>
           <div className="space-y-1 max-h-40 overflow-y-auto border rounded p-2">
-            {uploadedFiles.category_listings.map(f => (
+            {[...uploadedFiles.pz_category_listings, ...uploadedFiles.ep_category_listings].map(f => (
               <label key={f} className="flex items-center gap-2 cursor-pointer text-sm">
                 <input
                   type="checkbox"
@@ -129,7 +173,7 @@ export default function FollowSell() {
                 {f}
               </label>
             ))}
-            {uploadedFiles.category_listings.length === 0 && (
+            {uploadedFiles.pz_category_listings.length === 0 && uploadedFiles.ep_category_listings.length === 0 && (
               <p className="text-gray-400 text-sm">暂无已上传的 Category 文件</p>
             )}
           </div>
@@ -142,7 +186,7 @@ export default function FollowSell() {
         <p className="text-xs text-gray-400">每行一个，支持批量粘贴</p>
         <textarea
           className="border rounded px-3 py-2 w-full font-mono text-sm h-32 resize-none"
-          placeholder={"EG02088BK04-UK1\nEG02088RD06-UK1\n..."}
+          placeholder={country === 'UK' ? "EG02088BK04-UK1\nEG02088RD06-UK1\n..." : "EG02088BK04\nEG02088RD06\n..."}
           value={skuText}
           onChange={e => setSkuText(e.target.value)}
         />
