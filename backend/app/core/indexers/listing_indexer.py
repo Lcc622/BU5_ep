@@ -5,6 +5,7 @@ from __future__ import annotations
 import csv
 from collections import defaultdict
 from pathlib import Path
+import re
 from typing import Any
 
 from openpyxl import load_workbook
@@ -33,8 +34,10 @@ def _is_missing_value(value: Any) -> bool:
 class ListingIndexer:
     """从 All Listings 与 Category Listings 构建 SKU 索引。"""
 
-    def build_index(self, listings_file: Path, category_files: list[Path]) -> dict[str, Any]:
-        all_rows = self._read_all_listings_report(listings_file)
+    def build_index(self, listings_files: list[Path], category_files: list[Path]) -> dict[str, Any]:
+        all_rows: list[dict[str, Any]] = []
+        for listings_file in listings_files:
+            all_rows.extend(self._read_all_listings_report(listings_file))
         category_rows = self._read_category_listing_reports(category_files)
 
         by_sku: dict[str, dict[str, Any]] = {}
@@ -145,21 +148,35 @@ class ListingIndexer:
 
         return rows
 
+    _TEMPLATE_SHEET_NAMES = frozenset({"template", "modèle", "vorlage", "modello", "plantilla"})
+
     def _find_category_sheet(self, workbook) -> tuple[Any, int, list[str]]:
-        """优先选择 Template，否则选择第一个包含 SKU 列的 sheet。"""
+        """优先选择 Template（含各语言翻译），否则选择第一个包含 SKU 列的 sheet。"""
         ordered_names = list(workbook.sheetnames)
-        if "Template" in workbook.sheetnames:
-            ordered_names.remove("Template")
-            ordered_names.insert(0, "Template")
+        template_name = next(
+            (name for name in ordered_names if name.casefold() in self._TEMPLATE_SHEET_NAMES),
+            None,
+        )
+        if template_name is not None:
+            ordered_names.remove(template_name)
+            ordered_names.insert(0, template_name)
 
         for sheet_name in ordered_names:
             worksheet = workbook[sheet_name]
-            for row_index, values in enumerate(
-                worksheet.iter_rows(min_row=1, max_row=min(25, worksheet.max_row), values_only=True),
-                start=1,
-            ):
-                headers = [_normalize_header(value) for value in values]
-                if any(h in ("sku", "seller sku", "seller-sku") for h in headers):
+            scanned_rows = [
+                (row_index, [_normalize_header(value) for value in values])
+                for row_index, values in enumerate(
+                    worksheet.iter_rows(min_row=1, max_row=min(25, worksheet.max_row), values_only=True),
+                    start=1,
+                )
+            ]
+
+            for row_index, headers in scanned_rows:
+                if "contribution_sku#1.value" in headers:
+                    return worksheet, row_index, headers
+
+            for row_index, headers in scanned_rows:
+                if any(header in ("sku", "seller sku", "seller-sku") for header in headers):
                     return worksheet, row_index, headers
 
         raise ValueError("No worksheet containing a 'SKU' column was found.")
@@ -175,12 +192,13 @@ class ListingIndexer:
 
             normalized_value = _normalize_cell(value)
 
-            if header in ("bullet point", "bullet_point"):
-                bullet_point_count += 1
-                row[f"bullet_point{bullet_point_count}"] = normalized_value
+            bullet_point_key = self._bullet_point_key(header, next_index=bullet_point_count + 1)
+            if bullet_point_key is not None:
+                bullet_point_count = max(bullet_point_count, int(bullet_point_key.removeprefix("bullet_point")))
+                row[bullet_point_key] = normalized_value
                 continue
 
-            if header in ("generic keywords", "generic keyword"):
+            if self._is_generic_keyword_header(header):
                 if generic_keyword_seen:
                     continue
                 row["generic_keywords"] = normalized_value
@@ -188,8 +206,31 @@ class ListingIndexer:
                 continue
 
             row[header] = normalized_value
+            base_key = self._simplified_machine_header_key(header)
+            if base_key and base_key not in row:
+                row[base_key] = normalized_value
 
         return row
+
+    def _bullet_point_key(self, header: str, *, next_index: int) -> str | None:
+        if not (header.startswith("bullet_point") or header.startswith("bullet point")):
+            return None
+
+        match = re.search(r"#(\d+)", header)
+        bullet_index = int(match.group(1)) if match else next_index
+        return f"bullet_point{bullet_index}"
+
+    def _is_generic_keyword_header(self, header: str) -> bool:
+        return header in ("generic keywords", "generic keyword") or header.startswith("generic_keyword")
+
+    def _simplified_machine_header_key(self, header: str) -> str | None:
+        if "[" not in header and "#" not in header:
+            return None
+        if header.startswith("contribution_sku"):
+            return "sku"
+
+        base_key = re.split(r"[\[#]", header, maxsplit=1)[0].strip()
+        return base_key or None
 
     def _merge_row(
         self,
