@@ -324,6 +324,16 @@ def _run_process_job(job_id: str, request: ProcessRequest) -> None:
 
 
 def _validate_process_files(request: ProcessRequest) -> None:
+    if request.input_mode == "matrix":
+        if not request.selected_prefixes:
+            raise HTTPException(status_code=400, detail="matrix 模式下 selected_prefixes 不能为空")
+        if not request.target_colors:
+            raise HTTPException(status_code=400, detail="matrix 模式下 target_colors 不能为空")
+        if not request.start_size or not request.end_size:
+            raise HTTPException(status_code=400, detail="matrix 模式下 start_size 和 end_size 不能为空")
+    elif request.input_mode == "direct-sku" and not request.direct_skus:
+        raise HTTPException(status_code=400, detail="direct-sku 模式下 direct_skus 不能为空")
+
     for filename in request.all_listings_files:
         all_listings_path = _resolve_uploaded_file(filename)
         if f"{request.country.value}_all_listings_" not in all_listings_path.name:

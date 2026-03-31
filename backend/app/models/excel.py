@@ -48,28 +48,43 @@ class ProcessRequest(BaseModel):
     all_listings_files: list[str] = Field(..., min_length=1, description="已上传的 all listings 文件名列表")
     fr_all_listings_file: str | None = Field(None, description="已上传的 FR all listings 文件名")
     category_files: list[str] = Field(..., min_length=1, description="已上传的 category 文件名列表")
-    selected_prefixes: list[str] = Field(..., min_length=1, description="需要处理的 SKU 前缀")
-    target_colors: list[str] = Field(..., min_length=1, description="目标颜色列表")
-    start_size: str = Field(..., min_length=1, description="起始尺码")
-    end_size: str = Field(..., min_length=1, description="结束尺码")
-    size_step: int = Field(..., ge=1, description="尺码步长")
-    mode: Literal["add-color", "add-code"] = Field(..., description="处理模式")
+    input_mode: Literal["matrix", "direct-sku"] = Field("matrix", description="输入方式: matrix=选择模式, direct-sku=直接贴SKU")
+    # matrix mode fields
+    selected_prefixes: list[str] = Field(default_factory=list, description="需要处理的 SKU 前缀")
+    target_colors: list[str] = Field(default_factory=list, description="目标颜色列表")
+    start_size: str = Field("", description="起始尺码")
+    end_size: str = Field("", description="结束尺码")
+    size_step: int = Field(1, ge=1, description="尺码步长")
+    mode: Literal["add-color", "add-code"] = Field("add-color", description="处理模式")
+    # direct-sku mode fields
+    direct_skus: list[str] | None = Field(None, description="直接指定的目标 SKU 列表")
 
-    @field_validator("start_size", "end_size")
+    @field_validator("start_size", "end_size", mode="before")
     @classmethod
-    def strip_required_value(cls, value: str) -> str:
-        stripped = value.strip()
-        if not stripped:
-            raise ValueError("value cannot be blank")
-        return stripped
+    def strip_optional_value(cls, value: str) -> str:
+        return str(value).strip() if value else ""
 
-    @field_validator("all_listings_files", "category_files", "selected_prefixes", "target_colors")
+    @field_validator("all_listings_files", "category_files")
     @classmethod
     def strip_list_values(cls, values: list[str]) -> list[str]:
         normalized = [item.strip() for item in values if str(item).strip()]
         if not normalized:
             raise ValueError("list cannot be empty")
         return normalized
+
+    @field_validator("selected_prefixes", "target_colors", mode="before")
+    @classmethod
+    def strip_optional_list(cls, values: list[str] | None) -> list[str]:
+        if not values:
+            return []
+        return [item.strip() for item in values if str(item).strip()]
+
+    @field_validator("direct_skus", mode="before")
+    @classmethod
+    def strip_direct_skus(cls, values: list[str] | None) -> list[str] | None:
+        if not values:
+            return None
+        return [item.strip().upper() for item in values if str(item).strip()]
 
 class UploadResponse(BaseModel):
     """基础上传响应。"""

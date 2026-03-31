@@ -487,6 +487,8 @@ class AddColorSizeProcessor:
             start_size=request.start_size,
             end_size=request.end_size,
             size_step=request.size_step,
+            input_mode=request.input_mode,
+            direct_skus=request.direct_skus,
             output_filename=output_filename,
             progress_callback=progress_callback,
             mode=request.mode,
@@ -505,6 +507,8 @@ class AddColorSizeProcessor:
         size_step: int,
         output_filename: str | None,
         progress_callback: Any | None,
+        input_mode: str = "matrix",
+        direct_skus: Iterable[str] | None = None,
         mode: str = "add-color",
         fr_asin_map: dict[str, str] | None = None,
     ) -> ProcessResult:
@@ -512,18 +516,32 @@ class AddColorSizeProcessor:
         profile = COUNTRY_PROFILES[resolved_country]
         normalized_prefixes = self._dedupe_upper(selected_prefixes)
         normalized_colors = self._dedupe_upper(target_colors)
-        size_codes = self._build_size_codes(start_size=start_size, end_size=end_size, size_step=size_step)
+        target_variants: dict[str, list[tuple[str, str]]] | None = None
+        if input_mode == "direct-sku":
+            target_variants = self._build_target_variants(direct_skus)
+            normalized_prefixes = list(target_variants)
+            size_codes: list[str] = []
+        else:
+            size_codes = self._build_size_codes(start_size=start_size, end_size=end_size, size_step=size_step)
         headers = self._build_headers(profile)
         rows_by_suffix: dict[str, list[dict[str, Any]]] = defaultdict(list)
         errors: list[str] = []
         processed_count = 0
         skipped_count = 0
-        total_operations = max(1, len(normalized_prefixes) * len(normalized_colors) * len(size_codes))
+        if target_variants is not None:
+            total_operations = max(1, sum(len(variants) for variants in target_variants.values()))
+        else:
+            total_operations = max(1, len(normalized_prefixes) * len(normalized_colors) * len(size_codes))
 
         if progress_callback is not None:
             progress_callback(20)
 
         for prefix_index, prefix in enumerate(normalized_prefixes, start=1):
+            if target_variants is not None:
+                variants = target_variants.get(prefix, [])
+            else:
+                variants = [(color_code, size_code) for color_code in normalized_colors for size_code in size_codes]
+
             records = self._get_records_for_prefix(index, prefix)
             if not records:
                 errors.append(f"No source records found for prefix {prefix}")
@@ -547,7 +565,7 @@ class AddColorSizeProcessor:
                 source_record = self._pick_source_record(records, suffix)
                 if source_record is None or source_record.parsed_sku is None:
                     errors.append(f"No usable source record found for {prefix}{suffix}")
-                    skipped_count += len(normalized_colors) * len(size_codes)
+                    skipped_count += len(variants)
                     continue
 
                 # Look up the parent SKU's own ASIN (not a child's ASIN)
@@ -561,16 +579,15 @@ class AddColorSizeProcessor:
                     )
                 )
 
-                for color_code in normalized_colors:
-                    for size_code in size_codes:
-                        row = self._build_output_row(
-                            source_record=source_record,
-                            new_color_code=color_code,
-                            new_size_code=size_code,
-                            profile=profile,
-                        )
-                        rows_by_suffix[suffix].append(row)
-                        processed_count += 1
+                for color_code, size_code in variants:
+                    row = self._build_output_row(
+                        source_record=source_record,
+                        new_color_code=color_code,
+                        new_size_code=size_code,
+                        profile=profile,
+                    )
+                    rows_by_suffix[suffix].append(row)
+                    processed_count += 1
 
             if progress_callback is not None:
                 progress = 20 + int((prefix_index / len(normalized_prefixes)) * 70)
@@ -580,6 +597,8 @@ class AddColorSizeProcessor:
             country=resolved_country,
             selected_prefixes=normalized_prefixes,
             target_colors=normalized_colors,
+            input_mode=input_mode,
+            direct_skus=self._dedupe_upper(direct_skus or []),
             mode=mode,
             output_filename=output_filename,
         )
@@ -1299,6 +1318,20 @@ class AddColorSizeProcessor:
     def _build_image_url(self, product_code: str, color_code: str, suffix: str) -> str:
         return f"https://eppic.s3.amazonaws.com/{product_code}{color_code}{suffix}.jpg"
 
+    def _build_target_variants(self, direct_skus: Iterable[str] | None) -> dict[str, list[tuple[str, str]]]:
+        grouped: dict[str, list[tuple[str, str]]] = {}
+        seen: dict[str, set[tuple[str, str]]] = defaultdict(set)
+
+        for raw_sku in self._dedupe_upper(direct_skus or []):
+            parsed_sku = parse_sku(raw_sku)
+            variant = (parsed_sku.color_code, parsed_sku.size_code)
+            if variant in seen[parsed_sku.product_code]:
+                continue
+            seen[parsed_sku.product_code].add(variant)
+            grouped.setdefault(parsed_sku.product_code, []).append(variant)
+
+        return grouped
+
     def _resolve_output_filename(self, output_filename: str | None, request: "ProcessRequest") -> str:
         if output_filename:
             filename = Path(output_filename).name
@@ -1307,7 +1340,11 @@ class AddColorSizeProcessor:
             return filename
 
         country = request.country.value  # "UK" / "FR" / ...
-        prefixes = request.selected_prefixes
+        input_mode = getattr(request, "input_mode", "matrix")
+        if input_mode == "direct-sku":
+            prefixes = list(self._build_target_variants(getattr(request, "direct_skus", None)))
+        else:
+            prefixes = request.selected_prefixes
         mode = request.mode
 
         # STYLE_PART

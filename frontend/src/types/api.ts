@@ -44,12 +44,14 @@ export interface ProcessRequest {
   country: Country;
   all_listings_files: string[];
   category_files: string[];
-  selected_prefixes: string[];
-  target_colors: string[];
-  start_size: string;
-  end_size: string;
-  size_step: number;
-  mode: 'add-color' | 'add-code';
+  input_mode: 'matrix' | 'direct-sku';
+  direct_skus?: string[];
+  selected_prefixes?: string[];
+  target_colors?: string[];
+  start_size?: string;
+  end_size?: string;
+  size_step?: number;
+  mode?: 'add-color' | 'add-code';
 }
 
 export interface ProcessStartResponse {

@@ -5,6 +5,7 @@ import { getCountryMeta } from '../../constants/countries';
 import { excelApi } from '../../services/excelApi';
 import { useProcessStore } from '../../store/useProcessStore';
 import { useUploadStore } from '../../store/useUploadStore';
+import { parseDirectSkuText } from './directSku';
 
 const parseColorCodes = (value: string) =>
   value
@@ -15,6 +16,8 @@ const parseColorCodes = (value: string) =>
 export function ProcessButton() {
   const country = useProcessStore((state) => state.country);
   const mode = useProcessStore((state) => state.mode);
+  const inputMode = useProcessStore((state) => state.inputMode);
+  const directSkuText = useProcessStore((state) => state.directSkuText);
   const generatedSkus = useProcessStore((state) => state.generatedSkus);
   const startSize = useProcessStore((state) => state.startSize);
   const endSize = useProcessStore((state) => state.endSize);
@@ -35,6 +38,7 @@ export function ProcessButton() {
   const [jobStatusLabel, setJobStatusLabel] = useState('待执行');
 
   const selectedColors = parseColorCodes(colorList);
+  const directSkuResult = parseDirectSkuText(directSkuText);
   const validationMessages: string[] = [];
   if (allListingsFiles.length === 0) {
     validationMessages.push('请先上传 All Listings 文件');
@@ -42,25 +46,47 @@ export function ProcessButton() {
   if (categoryListingsFiles.length < 1) {
     validationMessages.push('请至少上传 1 份 Category 文件');
   }
-  if (selectedPrefixes.length === 0) {
-    validationMessages.push('请至少选择一个前缀');
-  }
-  if (selectedColors.length === 0) {
-    validationMessages.push('请至少选择一个颜色');
+  if (inputMode === 'matrix') {
+    if (selectedPrefixes.length === 0) {
+      validationMessages.push('请至少选择一个前缀');
+    }
+    if (selectedColors.length === 0) {
+      validationMessages.push('请至少选择一个颜色');
+    }
+  } else {
+    if (directSkuResult.uniqueSkus.length === 0) {
+      validationMessages.push('请至少输入一个有效 SKU');
+    }
+    if (directSkuResult.invalidEntries.length > 0) {
+      validationMessages.push(`存在 ${directSkuResult.invalidEntries.length} 个格式错误的 SKU`);
+    }
   }
 
   const startMutation = useMutation({
     mutationFn: async () => {
+      const request =
+        inputMode === 'direct-sku'
+          ? {
+              country,
+              all_listings_files: allListingsFiles,
+              category_files: categoryListingsFiles,
+              input_mode: 'direct-sku' as const,
+              direct_skus: directSkuResult.uniqueSkus,
+            }
+          : {
+              country,
+              all_listings_files: allListingsFiles,
+              category_files: categoryListingsFiles,
+              input_mode: 'matrix' as const,
+              selected_prefixes: selectedPrefixes,
+              target_colors: selectedColors,
+              start_size: startSize,
+              end_size: endSize,
+              size_step: sizeStep,
+              mode,
+            };
       const response = await excelApi.startProcess({
-        country,
-        all_listings_files: allListingsFiles,
-        category_files: categoryListingsFiles,
-        selected_prefixes: selectedPrefixes,
-        target_colors: selectedColors,
-        start_size: startSize,
-        end_size: endSize,
-        size_step: sizeStep,
-        mode,
+        ...request,
       });
       return response;
     },
@@ -131,6 +157,24 @@ export function ProcessButton() {
 
   const ready = validationMessages.length === 0;
   const isBusy = startMutation.isPending || Boolean(jobId);
+  const selectionSummary =
+    inputMode === 'direct-sku'
+      ? `${directSkuResult.uniqueSkus.length} sku / ${directSkuResult.productCodes.length} product`
+      : `${selectedPrefixes.length} prefix / ${selectedColors.length} color`;
+  const snapshotTitle = inputMode === 'direct-sku' ? 'Direct SKU Snapshot' : 'SKU Snapshot';
+  const snapshotDescription =
+    inputMode === 'direct-sku'
+      ? `有效 SKU ${directSkuResult.uniqueSkus.length} 条，产品码 ${directSkuResult.productCodes.length} 个，颜色 ${directSkuResult.colorCodes.length} 个`
+      : `前缀 ${productPrefix || '未填写'}，尺码 ${startSize} - ${endSize}，步长 ${sizeStep}`;
+  const snapshotSubtext =
+    inputMode === 'direct-sku'
+      ? directSkuResult.invalidEntries.length > 0
+        ? `存在 ${directSkuResult.invalidEntries.length} 个格式错误的 SKU`
+        : directSkuResult.duplicateCount > 0
+          ? `检测到 ${directSkuResult.duplicateCount} 个重复 SKU`
+          : 'SKU 文本校验通过'
+      : `已预生成 ${generatedSkus.length} 个 SKU`;
+  const modeLabel = inputMode === 'direct-sku' ? 'direct-sku' : `matrix · ${mode}`;
 
   return (
     <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-panel">
@@ -138,7 +182,11 @@ export function ProcessButton() {
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.32em] text-aurora">Execution</p>
           <h3 className="mt-2 text-xl font-extrabold text-ink">开始处理</h3>
-          <p className="mt-2 text-sm text-steel">按国家、前缀、颜色和尺码区间创建异步任务，并每 1.5 秒轮询状态。</p>
+          <p className="mt-2 text-sm text-steel">
+            {inputMode === 'direct-sku'
+              ? '按国家与 SKU 清单创建异步任务，并每 1.5 秒轮询状态。'
+              : '按国家、前缀、颜色和尺码区间创建异步任务，并每 1.5 秒轮询状态。'}
+          </p>
         </div>
         <button
           type="button"
@@ -176,7 +224,7 @@ export function ProcessButton() {
         </div>
         <div className="rounded-2xl bg-mist p-4">
           <div className="text-xs font-bold uppercase tracking-[0.18em] text-steel">Mode</div>
-          <div className="mt-2 text-lg font-bold text-ink">{mode}</div>
+          <div className="mt-2 text-lg font-bold text-ink">{modeLabel}</div>
         </div>
         <div className="rounded-2xl bg-mist p-4">
           <div className="text-xs font-bold uppercase tracking-[0.18em] text-steel">Status</div>
@@ -184,19 +232,15 @@ export function ProcessButton() {
         </div>
         <div className="rounded-2xl bg-mist p-4">
           <div className="text-xs font-bold uppercase tracking-[0.18em] text-steel">Selection</div>
-          <div className="mt-2 text-lg font-bold text-ink">
-            {selectedPrefixes.length} prefix / {selectedColors.length} color
-          </div>
+          <div className="mt-2 text-lg font-bold text-ink">{selectionSummary}</div>
         </div>
       </div>
 
       <div className="mt-4 grid gap-3 md:grid-cols-2">
         <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
-          <div className="text-xs font-bold uppercase tracking-[0.18em] text-steel">SKU Snapshot</div>
-          <div className="mt-2 text-sm text-ink">
-            前缀 {productPrefix || '未填写'}，尺码 {startSize} - {endSize}，步长 {sizeStep}
-          </div>
-          <div className="mt-1 text-sm text-steel">已预生成 {generatedSkus.length} 个 SKU</div>
+          <div className="text-xs font-bold uppercase tracking-[0.18em] text-steel">{snapshotTitle}</div>
+          <div className="mt-2 text-sm text-ink">{snapshotDescription}</div>
+          <div className="mt-1 text-sm text-steel">{snapshotSubtext}</div>
         </div>
         <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
           <div className="text-xs font-bold uppercase tracking-[0.18em] text-steel">Files</div>

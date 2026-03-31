@@ -4,15 +4,19 @@ import { ColorMappingManager } from './components/ColorMapping/ColorMappingManag
 import { DownloadHistory } from './components/DownloadHistory/DownloadHistory';
 import { ColorSelector } from './components/ExcelProcess/ColorSelector';
 import { CountryTemplateSelector } from './components/ExcelProcess/CountryTemplateSelector';
+import { DirectSkuInput } from './components/ExcelProcess/DirectSkuInput';
+import { InputModeSwitcher } from './components/ExcelProcess/InputModeSwitcher';
 import { PrefixInput } from './components/ExcelProcess/PrefixInput';
 import { ProcessButton } from './components/ExcelProcess/ProcessButton';
 import { FileUploader } from './components/ExcelUpload/FileUploader';
+import { useProcessStore } from './store/useProcessStore';
 import FollowSell from './pages/FollowSell';
 
 type TabKey = 'process' | 'mapping' | 'history' | 'follow-sell';
 
 function App() {
   const [activeTab, setActiveTab] = useState<TabKey>('process');
+  const inputMode = useProcessStore((state) => state.inputMode);
 
   return (
     <div className="min-h-screen">
@@ -46,8 +50,8 @@ function App() {
           {[
             { key: 'process' as const, label: '加色加码' },
             { key: 'mapping' as const, label: '颜色映射管理' },
-            { key: 'history' as const, label: '下载历史' },
             { key: 'follow-sell' as const, label: '跟卖上新' },
+            { key: 'history' as const, label: '下载历史' },
           ].map((tab) => (
             <button
               key={tab.key}
@@ -70,13 +74,14 @@ function App() {
             <>
               <CountrySelector />
               <FileUploader />
+              <CountryTemplateSelector />
+              <InputModeSwitcher />
               <div className="grid gap-6 xl:grid-cols-[0.92fr_1.08fr]">
                 <div className="space-y-6">
-                  <CountryTemplateSelector />
-                  <PrefixInput />
+                  {inputMode === 'matrix' ? <PrefixInput /> : <DirectSkuInput />}
                 </div>
                 <div className="space-y-6">
-                  <ColorSelector />
+                  {inputMode === 'matrix' ? <ColorSelector /> : null}
                   <ProcessButton />
                 </div>
               </div>

@@ -438,6 +438,53 @@ class AddColorSizeProcessorTests(unittest.TestCase):
         )
         self.assertTrue(all(row["Colour"] == "Black" for row in children))
 
+    def test_process_request_direct_sku_groups_variants_by_prefix(self) -> None:
+        self._create_template_workbook()
+        self._require_upload_files(
+            "UK_all_listings_20260313082242_All+Listings+Report_03-11-2026.txt",
+            "UK_category_20260313082255_0_APPAREL-DRESS.xlsm",
+            "UK_category_20260313082258_1_DRESS.xlsm",
+            "UK_category_20260313082300_2_DRESS-UNDERGARMENT_SLIP.xlsm",
+        )
+
+        request = ProcessRequest(
+            country=Country.UK,
+            all_listings_files=["UK_all_listings_20260313082242_All+Listings+Report_03-11-2026.txt"],
+            category_files=[
+                "UK_category_20260313082255_0_APPAREL-DRESS.xlsm",
+                "UK_category_20260313082258_1_DRESS.xlsm",
+                "UK_category_20260313082300_2_DRESS-UNDERGARMENT_SLIP.xlsm",
+            ],
+            input_mode="direct-sku",
+            direct_skus=["EG02230BK04", "EG02230BD06", "EG02230BK04-UK1"],
+            mode="add-color",
+        )
+
+        result = AddColorSizeProcessor().process(request, output_filename="direct-sku-output")
+
+        self.assertEqual(result.output_file, "direct-sku-output.xlsx")
+        self.assertEqual(result.processed_count, 4)
+        self.assertEqual(result.skipped_count, 0)
+
+        output_path = Path(self._results_dir.name) / result.output_file
+        _, rows = _template_rows(output_path)
+        children = self._child_rows(rows)
+
+        self.assertEqual(len(rows), 6)
+        self.assertEqual(
+            sorted(str(row["Seller SKU"]) for row in children),
+            ["EG02230BD06", "EG02230BD06-UK1", "EG02230BK04", "EG02230BK04-UK1"],
+        )
+        self.assertEqual(
+            {str(row["Seller SKU"]): str(row["Parent SKU"]) for row in children},
+            {
+                "EG02230BK04": "EG02230",
+                "EG02230BD06": "EG02230",
+                "EG02230BK04-UK1": "EG02230-UK1",
+                "EG02230BD06-UK1": "EG02230-UK1",
+            },
+        )
+
     def test_process_request_uses_fr_asin_for_de_external_product_id(self) -> None:
         self._create_de_template_workbook()
         uploads_dir = self._require_upload_files(
