@@ -550,8 +550,15 @@ class AddColorSizeProcessor:
                     skipped_count += len(normalized_colors) * len(size_codes)
                     continue
 
+                # Look up the parent SKU's own ASIN (not a child's ASIN)
+                parent_sku_key = f"{prefix}{suffix}" if suffix else prefix
+                parent_asin = self._lookup_parent_asin(index, parent_sku_key)
                 rows_by_suffix[suffix].append(
-                    self._build_parent_row(source_record=source_record, profile=profile)
+                    self._build_parent_row(
+                        source_record=source_record,
+                        profile=profile,
+                        parent_asin=parent_asin,
+                    )
                 )
 
                 for color_code in normalized_colors:
@@ -848,6 +855,7 @@ class AddColorSizeProcessor:
         *,
         source_record: _NormalizedRecord,
         profile: CountryProfile,
+        parent_asin: str | None = None,
     ) -> dict[str, Any]:
         if source_record.parsed_sku is None:
             raise ValueError("source_record.parsed_sku is required")
@@ -864,8 +872,9 @@ class AddColorSizeProcessor:
             "Brand Name": self._copy_field_value(source_record.category_data, "Brand Name"),
             "Product Name": self._first_value(source_data, ITEM_NAME_ALIASES),
         }
-        if source_record.asin:
-            parent_row["external_product_id"] = source_record.asin
+        asin = parent_asin or source_record.asin
+        if asin:
+            parent_row["external_product_id"] = asin
             parent_row["external_product_id_type"] = "ASIN"
         for display_key, machine_key in DISPLAY_TO_MACHINE.items():
             if display_key in parent_row and machine_key not in parent_row:
@@ -1190,6 +1199,17 @@ class AddColorSizeProcessor:
             price=price,
             asin=asin,
         )
+
+    def _lookup_parent_asin(self, index: Any, parent_sku: str) -> str | None:
+        """Look up the ASIN for the parent SKU (product code only) from the index."""
+        if isinstance(index, Mapping):
+            by_sku = index.get("by_sku", {})
+            raw = by_sku.get(parent_sku)
+            if raw is not None:
+                record = self._normalize_record(raw)
+                if record is not None and record.asin:
+                    return record.asin
+        return None
 
     def _collect_suffixes(self, records: Iterable[_NormalizedRecord]) -> list[str]:
         suffixes = {
