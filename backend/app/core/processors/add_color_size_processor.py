@@ -810,7 +810,11 @@ class AddColorSizeProcessor:
             row[output_key] = self._first_value(source_record.category_data, aliases)
 
         for index, suffix in enumerate(profile.image_suffixes_other, start=1):
-            row[f"Other Image Url{index}"] = self._build_image_url(product_code, new_color_code, suffix)
+            if suffix == "-S-EU":
+                # EU size chart: no color code, e.g. ES0128B-S-EU.jpg
+                row[f"Other Image Url{index}"] = f"https://eppic.s3.amazonaws.com/{product_code}{suffix}.jpg"
+            else:
+                row[f"Other Image Url{index}"] = self._build_image_url(product_code, new_color_code, suffix)
 
         row[generic_keyword_header] = self._first_value(source_data, GENERIC_KEYWORD_ALIASES)
 
@@ -1448,11 +1452,12 @@ class AddColorSizeProcessor:
                 "is_adult_product": "Non",
                 "supplier_declared_dg_hz_regulation1": "Not Applicable",
                 "package_weight": 0.4,
-                "package_weight_unit_of_measure": "KG",
+                "package_weight_unit_of_measure": "GR",
                 "package_dimensions_unit_of_measure": "IN",
                 "manufacturer": "Dongguan Kaidilisha Fushi Co., Ltd",
                 "dsa_responsible_party_address": "Info@apex-ce.de",
                 "gpsr_manufacturer_reference": "globalservice@ever-pretty.com",
+                "recommended_browse_nodes": "13880102031",
             }
         if country_code == Country.IT.value:
             return {

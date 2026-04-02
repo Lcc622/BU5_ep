@@ -744,7 +744,7 @@ class AddColorSizeProcessorTests(unittest.TestCase):
         self.assertEqual(row["is_adult_product"], "Non")
         self.assertEqual(row["supplier_declared_dg_hz_regulation1"], "Not Applicable")
         self.assertEqual(row["package_weight"], 0.4)
-        self.assertEqual(row["package_weight_unit_of_measure"], "KG")
+        self.assertEqual(row["package_weight_unit_of_measure"], "GR")
         self.assertEqual(row["package_dimensions_unit_of_measure"], "IN")
         self.assertNotIn("supplier_declared_material_regulation1", row)
 
