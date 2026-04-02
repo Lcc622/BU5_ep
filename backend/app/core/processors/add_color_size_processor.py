@@ -770,7 +770,7 @@ class AddColorSizeProcessor:
         new_colour = self._get_colour_name(new_color_code, lang=lang)
         old_colour = self._get_source_colour_name(source_record, lang=lang)
         standard_price = source_record.price or 0.0
-        list_price_with_tax = standard_price + 10
+        list_price_with_tax = standard_price + 5
         generic_keyword_header = self._generic_keyword_header(profile)
         product_name = self._build_product_name(
             source_data=source_data,
@@ -801,7 +801,7 @@ class AddColorSizeProcessor:
             "standard_price": standard_price,
             "List Price with Tax for Display": list_price_with_tax,
             "main_image_url": self._build_image_url(product_code, new_color_code, profile.image_suffix_main),
-            "apparel_size_system": profile.country,
+            "apparel_size_system": "FR / ES" if profile.country.upper() in ("FR", "ES") else profile.country,
         }
 
         for output_key, aliases in COPY_FIELD_ALIASES:
@@ -824,6 +824,11 @@ class AddColorSizeProcessor:
         for display_key, machine_key in DISPLAY_TO_MACHINE.items():
             if display_key in row and machine_key not in row:
                 row[machine_key] = row[display_key]
+
+        # Amazon templates expect lowercase feed_product_type (e.g. "dress" not "DRESS")
+        for pt_key in ("Product Type", "feed_product_type"):
+            if pt_key in row and isinstance(row[pt_key], str):
+                row[pt_key] = row[pt_key].lower()
 
         # Real EU templates use dedicated machine columns for these units.
         # Keep the machine-key values authoritative so localized/raw source units
@@ -887,7 +892,7 @@ class AddColorSizeProcessor:
             "Relationship Type": "Variation",
             "Variation Theme": "SizeName-ColorName",
             "Update Delete": "PartialUpdate",
-            "Product Type": self._copy_field_value(source_record.category_data, "Product Type"),
+            "Product Type": (self._copy_field_value(source_record.category_data, "Product Type") or "").lower(),
             "Brand Name": self._copy_field_value(source_record.category_data, "Brand Name"),
             "Product Name": self._first_value(source_data, ITEM_NAME_ALIASES),
         }
@@ -1443,6 +1448,9 @@ class AddColorSizeProcessor:
                 "package_weight": 0.4,
                 "package_weight_unit_of_measure": "KG",
                 "package_dimensions_unit_of_measure": "IN",
+                "manufacturer": "Dongguan Kaidilisha Fushi Co., Ltd",
+                "dsa_responsible_party_address": "Info@apex-ce.de",
+                "gpsr_manufacturer_reference": "globalservice@ever-pretty.com",
             }
         if country_code == Country.IT.value:
             return {
