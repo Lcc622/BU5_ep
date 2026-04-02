@@ -279,6 +279,8 @@ LOCKED_SOURCE_FIELD_ALIASES: tuple[str, ...] = (
     "model name",
     "part_number",
     "part number",
+    "list_price",
+    "list price",
 )
 DISPLAY_TO_MACHINE: dict[str, str] = {
     "Seller SKU": "item_sku",
