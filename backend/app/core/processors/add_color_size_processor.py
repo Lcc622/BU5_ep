@@ -772,7 +772,8 @@ class AddColorSizeProcessor:
         new_colour = self._get_colour_name(new_color_code, lang=lang)
         old_colour = self._get_source_colour_name(source_record, lang=lang)
         standard_price = source_record.price or 0.0
-        list_price_with_tax = standard_price + 5
+        list_price_markup = 10 if profile.country.upper() == Country.UK.value else 5
+        list_price_with_tax = standard_price + list_price_markup
         generic_keyword_header = self._generic_keyword_header(profile)
         product_name = self._build_product_name(
             source_data=source_data,
@@ -1443,6 +1444,12 @@ class AddColorSizeProcessor:
 
     def _build_country_static_fields(self, profile: CountryProfile) -> dict[str, Any]:
         country_code = profile.country.upper()
+        if country_code == Country.UK.value:
+            return {
+                "package_weight": 0.4,
+                "package_weight_unit_of_measure": "GR",
+                "recommended_browse_nodes": "13623308031",
+            }
         if country_code == Country.DE.value:
             return {"supplier_declared_dg_hz_regulation1": "Nicht zutreffend"}
         if country_code == Country.FR.value:
