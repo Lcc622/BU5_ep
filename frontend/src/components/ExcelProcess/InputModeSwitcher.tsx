@@ -19,14 +19,14 @@ export function InputModeSwitcher() {
   const activeOption = INPUT_MODE_OPTIONS.find((option) => option.value === inputMode) ?? INPUT_MODE_OPTIONS[0];
 
   return (
-    <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-panel">
+    <section className="rounded-[28px] border border-[#E8EAED] bg-white p-6 shadow-panel">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.32em] text-aurora">Input Mode</p>
           <h3 className="mt-2 text-xl font-extrabold text-ink">选择输入方式</h3>
           <p className="mt-2 text-sm text-steel">{activeOption.description}</p>
         </div>
-        <div className="inline-flex rounded-full bg-slate-100 p-1">
+        <div className="inline-flex rounded-full bg-[#F7F9FA] p-1">
           {INPUT_MODE_OPTIONS.map((option) => (
             <button
               key={option.value}
@@ -34,7 +34,7 @@ export function InputModeSwitcher() {
               onClick={() => setInputMode(option.value)}
               className={[
                 'rounded-full px-4 py-2 text-sm font-semibold transition',
-                inputMode === option.value ? 'bg-ink text-white' : 'text-slate-500 hover:text-ink',
+                inputMode === option.value ? 'bg-ink text-white' : 'text-[#8C8C8C] hover:text-ink',
               ].join(' ')}
             >
               {option.label}

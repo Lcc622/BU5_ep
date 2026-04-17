@@ -97,13 +97,13 @@ export default function FollowSell() {
       <h1 className="text-2xl font-bold text-gray-800">跟卖上新</h1>
 
       {/* Step 1: 文件选择 */}
-      <section className="bg-white rounded-lg border p-4 space-y-4">
+      <section className="bg-white  border p-4 space-y-4">
         <h2 className="font-semibold text-gray-700">Step 1：选择数据文件</h2>
 
         <div>
           <label className="block text-sm text-gray-600 mb-1">国家</label>
           <select
-            className="border rounded px-3 py-2 w-full"
+            className="border  px-3 py-2 w-full"
             value={country}
             onChange={e => {
               setCountry(e.target.value);
@@ -122,7 +122,7 @@ export default function FollowSell() {
           <label className="block text-sm text-gray-600 mb-1">
             All Listings Report（可选多张，已选 {allListingsFiles.length} 张）
           </label>
-          <div className="space-y-1 max-h-40 overflow-y-auto border rounded p-2">
+          <div className="space-y-1 max-h-40 overflow-y-auto border  p-2">
             {uploadedFiles.all_listings.map(f => (
               <label key={f} className="flex items-center gap-2 cursor-pointer text-sm">
                 <input
@@ -146,7 +146,7 @@ export default function FollowSell() {
               <span className="text-xs text-gray-400 ml-1">（DE/IT/ES 跟卖需要 FR ASIN）</span>
             </label>
             <select
-              className="border rounded px-3 py-2 w-full"
+              className="border  px-3 py-2 w-full"
               value={frAllListingsFile}
               onChange={e => setFrAllListingsFile(e.target.value)}
             >
@@ -162,7 +162,7 @@ export default function FollowSell() {
           <label className="block text-sm text-gray-600 mb-1">
             Category Listings（至少选 1 张，目标 {requiredCategoryCount} 张，已选 {categoryFiles.length} 张）
           </label>
-          <div className="space-y-1 max-h-40 overflow-y-auto border rounded p-2">
+          <div className="space-y-1 max-h-40 overflow-y-auto border  p-2">
             {[...uploadedFiles.pz_category_listings, ...uploadedFiles.ep_category_listings].map(f => (
               <label key={f} className="flex items-center gap-2 cursor-pointer text-sm">
                 <input
@@ -181,11 +181,11 @@ export default function FollowSell() {
       </section>
 
       {/* Step 2: 输入新款 SKU */}
-      <section className="bg-white rounded-lg border p-4 space-y-2">
+      <section className="bg-white  border p-4 space-y-2">
         <h2 className="font-semibold text-gray-700">Step 2：输入新款 SKU</h2>
         <p className="text-xs text-gray-400">每行一个，支持批量粘贴</p>
         <textarea
-          className="border rounded px-3 py-2 w-full font-mono text-sm h-32 resize-none"
+          className="border  px-3 py-2 w-full font-mono text-sm h-32 resize-none"
           placeholder={country === 'UK' ? "EG02088BK04-UK1\nEG02088RD06-UK1\n..." : "EG02088BK04\nEG02088RD06\n..."}
           value={skuText}
           onChange={e => setSkuText(e.target.value)}
@@ -193,13 +193,13 @@ export default function FollowSell() {
       </section>
 
       {/* Step 3: 生成 */}
-      <section className="bg-white rounded-lg border p-4 space-y-3">
+      <section className="bg-white  border p-4 space-y-3">
         <h2 className="font-semibold text-gray-700">Step 3：生成跟卖表</h2>
 
         {error && <p className="text-red-500 text-sm">{error}</p>}
 
         <button
-          className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
+          className="bg-blue-600 text-white px-6 py-2  hover:bg-blue-700 disabled:opacity-50"
           onClick={handleSubmit}
           disabled={isRunning}
         >
@@ -225,7 +225,7 @@ export default function FollowSell() {
             </p>
             <a
               href={followSellApi.getDownloadUrl(jobStatus.result.output_file)}
-              className="inline-block bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 text-sm"
+              className="inline-block bg-green-600 text-white px-4 py-2  hover:bg-green-700 text-sm"
               download
             >
               下载跟卖表

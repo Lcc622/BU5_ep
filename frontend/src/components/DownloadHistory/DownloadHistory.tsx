@@ -43,7 +43,7 @@ export function DownloadHistory() {
   const files = data?.files ?? [];
 
   return (
-    <section className="rounded-[32px] border border-slate-200 bg-white p-6 shadow-panel">
+    <section className="rounded-[32px] border border-[#E8EAED] bg-white p-6 shadow-panel">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.32em] text-pine">Result Archive</p>
@@ -54,15 +54,15 @@ export function DownloadHistory() {
           type="button"
           onClick={() => refetch()}
           disabled={isFetching}
-          className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-ink transition hover:border-ink disabled:opacity-60"
+          className="rounded-full border border-[#E8EAED] px-4 py-2 text-sm font-semibold text-ink transition hover:border-ink disabled:opacity-60"
         >
           {isFetching ? '刷新中...' : '刷新列表'}
         </button>
       </div>
 
-      <div className="mt-6 overflow-hidden rounded-3xl border border-slate-200">
+      <div className="mt-6 overflow-hidden rounded-3xl border border-[#E8EAED]">
         <table className="min-w-full divide-y divide-slate-200">
-          <thead className="bg-slate-50">
+          <thead className="bg-[#F7F9FA]">
             <tr>
               <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-[0.18em] text-steel">文件名</th>
               <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-[0.18em] text-steel">大小</th>

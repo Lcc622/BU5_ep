@@ -255,7 +255,7 @@ export function FileUploader() {
 
   return (
     <section className="grid gap-5 xl:grid-cols-[1.15fr_0.85fr]">
-      <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-panel">
+      <div className="rounded-[28px] border border-[#E8EAED] bg-white p-6 shadow-panel">
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.32em] text-aurora">Excel Intake</p>
@@ -267,7 +267,7 @@ export function FileUploader() {
         </div>
 
         <div className="mt-6 grid gap-4">
-          <div className="rounded-3xl border border-dashed border-slate-300 bg-slate-50 p-5">
+          <div className="rounded-3xl border border-dashed border-[#E8EAED] bg-[#F7F9FA] p-5">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
                 <div className="text-sm font-bold text-ink">All Listings Report (Custom)</div>
@@ -279,7 +279,7 @@ export function FileUploader() {
                 type="button"
                 onClick={() => allInputRef.current?.click()}
                 disabled={isUploadingAll}
-                className="rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-60"
+                className="rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#F7F9FA] disabled:opacity-60"
               >
                 {isUploadingAll ? '上传中...' : '继续上传'}
               </button>
@@ -300,14 +300,14 @@ export function FileUploader() {
                   return (
                     <div
                       key={filename}
-                      className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm"
+                      className="flex items-center justify-between  border border-[#E8EAED] bg-white px-4 py-3 text-sm"
                     >
                       <span className="min-w-0 truncate font-medium text-ink">{filename}</span>
                       <button
                         type="button"
                         onClick={() => void handleAllListingsFileDelete(filename)}
                         disabled={isDeleting}
-                        className="shrink-0 text-sm font-semibold text-slate-500 transition hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-60"
+                        className="shrink-0 text-sm font-semibold text-[#8C8C8C] transition hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-60"
                       >
                         {isDeleting ? '删除中...' : '删除'}
                       </button>
@@ -318,7 +318,7 @@ export function FileUploader() {
             </div>
           </div>
 
-          <div className="rounded-3xl border border-dashed border-slate-300 bg-slate-50 p-5">
+          <div className="rounded-3xl border border-dashed border-[#E8EAED] bg-[#F7F9FA] p-5">
             <div>
               <div className="text-sm font-bold text-ink">Category Listings Reports</div>
               <div className="mt-1 text-sm text-steel">
@@ -328,7 +328,7 @@ export function FileUploader() {
 
             {countryMeta.perStoreCategoryCount > 0 ? (
               <div className="mt-4 grid gap-4 md:grid-cols-2">
-                <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                <div className=" border border-[#E8EAED] bg-white p-4">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
                       <div className="text-sm font-bold text-ink">PZ 店铺</div>
@@ -361,14 +361,14 @@ export function FileUploader() {
                         return (
                           <div
                             key={filename}
-                            className="flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm"
+                            className="flex items-center justify-between  border border-[#E8EAED] bg-[#F7F9FA] px-4 py-3 text-sm"
                           >
                             <span className="min-w-0 truncate font-medium text-ink">{filename}</span>
                             <button
                               type="button"
                               onClick={() => void handlePzCategoryFileDelete(filename)}
                               disabled={isDeleting}
-                              className="shrink-0 text-sm font-semibold text-slate-500 transition hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-60"
+                              className="shrink-0 text-sm font-semibold text-[#8C8C8C] transition hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-60"
                             >
                               {isDeleting ? '删除中...' : '删除'}
                             </button>
@@ -379,7 +379,7 @@ export function FileUploader() {
                   </div>
                 </div>
 
-                <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                <div className=" border border-[#E8EAED] bg-white p-4">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
                       <div className="text-sm font-bold text-ink">EP 店铺</div>
@@ -412,14 +412,14 @@ export function FileUploader() {
                         return (
                           <div
                             key={filename}
-                            className="flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm"
+                            className="flex items-center justify-between  border border-[#E8EAED] bg-[#F7F9FA] px-4 py-3 text-sm"
                           >
                             <span className="min-w-0 truncate font-medium text-ink">{filename}</span>
                             <button
                               type="button"
                               onClick={() => void handleEpCategoryFileDelete(filename)}
                               disabled={isDeleting}
-                              className="shrink-0 text-sm font-semibold text-slate-500 transition hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-60"
+                              className="shrink-0 text-sm font-semibold text-[#8C8C8C] transition hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-60"
                             >
                               {isDeleting ? '删除中...' : '删除'}
                             </button>
@@ -431,7 +431,7 @@ export function FileUploader() {
                 </div>
               </div>
             ) : (
-              <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-4">
+              <div className="mt-4  border border-[#E8EAED] bg-white p-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <div className="text-sm font-bold text-ink">Category Listings Reports</div>
@@ -462,14 +462,14 @@ export function FileUploader() {
                       return (
                         <div
                           key={filename}
-                          className="flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm"
+                          className="flex items-center justify-between  border border-[#E8EAED] bg-[#F7F9FA] px-4 py-3 text-sm"
                         >
                           <span className="min-w-0 truncate font-medium text-ink">{filename}</span>
                           <button
                             type="button"
                             onClick={() => void handlePzCategoryFileDelete(filename)}
                             disabled={isDeleting}
-                            className="shrink-0 text-sm font-semibold text-slate-500 transition hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-60"
+                            className="shrink-0 text-sm font-semibold text-[#8C8C8C] transition hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-60"
                           >
                             {isDeleting ? '删除中...' : '删除'}
                           </button>
@@ -484,17 +484,17 @@ export function FileUploader() {
         </div>
 
         {uploadedFilesQuery.isFetching ? (
-          <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-steel">
+          <div className="mt-4  border border-[#E8EAED] bg-[#F7F9FA] px-4 py-3 text-sm text-steel">
             正在同步服务器上的已上传文件列表...
           </div>
         ) : null}
         {uploadedFilesQuery.isError ? (
-          <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          <div className="mt-4  border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
             无法同步服务器文件列表，当前页面可能仍显示旧的本地缓存文件名。
           </div>
         ) : null}
         {syncMessages.length > 0 ? (
-          <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          <div className="mt-4  border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
             {syncMessages.map((message) => (
               <div key={message}>{message}</div>
             ))}
@@ -502,7 +502,7 @@ export function FileUploader() {
         ) : null}
       </div>
 
-      <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-panel">
+      <div className="rounded-[28px] border border-[#E8EAED] bg-white p-6 shadow-panel">
         <p className="text-xs font-bold uppercase tracking-[0.32em] text-pine">Analysis</p>
         <h3 className="mt-2 text-xl font-extrabold text-ink">前缀预检</h3>
         <p className="mt-2 text-sm text-steel">上传 All Listings 后可在这里快速锁定本次参与处理的产品前缀。</p>
@@ -512,14 +512,14 @@ export function FileUploader() {
             <button
               type="button"
               onClick={() => setSelectedPrefixes(country, analysisResult.prefixes)}
-              className="rounded-full border border-slate-300 px-3 py-1 text-xs font-semibold text-steel hover:border-ink hover:text-ink transition"
+              className="rounded-full border border-[#E8EAED] px-3 py-1 text-xs font-semibold text-steel hover:border-ink hover:text-ink transition"
             >
               全选
             </button>
             <button
               type="button"
               onClick={() => setSelectedPrefixes(country, [])}
-              className="rounded-full border border-slate-300 px-3 py-1 text-xs font-semibold text-steel hover:border-red-400 hover:text-red-500 transition"
+              className="rounded-full border border-[#E8EAED] px-3 py-1 text-xs font-semibold text-steel hover:border-red-400 hover:text-red-500 transition"
             >
               清除
             </button>
@@ -544,7 +544,7 @@ export function FileUploader() {
                 }
                 className={[
                   'rounded-full border px-3 py-2 text-sm font-semibold transition',
-                  active ? 'border-ink bg-ink text-white' : 'border-slate-300 bg-white text-steel hover:border-ink hover:text-ink',
+                  active ? 'border-ink bg-ink text-white' : 'border-[#E8EAED] bg-white text-steel hover:border-ink hover:text-ink',
                 ].join(' ')}
               >
                 {prefix}
@@ -552,7 +552,7 @@ export function FileUploader() {
               );
             })
           ) : (
-            <div className="rounded-2xl bg-slate-50 px-4 py-3 text-sm text-steel">
+            <div className=" bg-[#F7F9FA] px-4 py-3 text-sm text-steel">
               先上传 All Listings Report，系统再返回可选前缀。
             </div>
           )}
@@ -564,7 +564,7 @@ export function FileUploader() {
             onChange={(e) => setManualPrefix(e.target.value)}
             onKeyDown={handleManualPrefixKeyDown}
             placeholder="手动输入前缀，如 EP00930"
-            className="flex-1 rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm outline-none transition focus:border-aurora"
+            className="flex-1 rounded-full border border-[#E8EAED] bg-[#F7F9FA] px-4 py-2 text-sm outline-none transition focus:border-aurora"
           />
           <button
             type="button"

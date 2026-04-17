@@ -30,11 +30,11 @@ export function PrefixInput() {
   }, [selectedPrefixes, setProductPrefix]);
 
   return (
-    <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-panel">
+    <section className="rounded-[28px] border border-[#E8EAED] bg-white p-6 shadow-panel">
       <p className="text-xs font-bold uppercase tracking-[0.32em] text-signal">SKU Generator</p>
       <h3 className="mt-2 text-xl font-extrabold text-ink">尺码区间预览</h3>
 
-      <div className="mt-4 rounded-2xl bg-mist px-4 py-3 text-sm">
+      <div className="mt-4  bg-mist px-4 py-3 text-sm">
         {selectedPrefixes.length === 0 ? (
           <span className="text-steel">请先在前缀预检中勾选产品前缀</span>
         ) : (
@@ -54,7 +54,7 @@ export function PrefixInput() {
           <input
             value={startSize}
             onChange={(event) => setStartSize(event.target.value)}
-            className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none transition focus:border-aurora"
+            className="w-full  border border-[#E8EAED] bg-[#F7F9FA] px-4 py-3 outline-none transition focus:border-aurora"
           />
         </label>
 
@@ -63,7 +63,7 @@ export function PrefixInput() {
           <input
             value={endSize}
             onChange={(event) => setEndSize(event.target.value)}
-            className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none transition focus:border-aurora"
+            className="w-full  border border-[#E8EAED] bg-[#F7F9FA] px-4 py-3 outline-none transition focus:border-aurora"
           />
         </label>
 
@@ -74,7 +74,7 @@ export function PrefixInput() {
             min={1}
             value={sizeStep}
             onChange={(event) => setSizeStep(Number(event.target.value) || 1)}
-            className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none transition focus:border-aurora"
+            className="w-full  border border-[#E8EAED] bg-[#F7F9FA] px-4 py-3 outline-none transition focus:border-aurora"
           />
         </label>
       </div>
@@ -104,7 +104,7 @@ export function PrefixInput() {
             generatedSkus.slice(0, 18).map((sku) => (
               <span
                 key={sku}
-                className="rounded-full border border-slate-300 bg-white px-3 py-2 text-xs font-bold tracking-[0.12em] text-ink"
+                className="rounded-full border border-[#E8EAED] bg-white px-3 py-2 text-xs font-bold tracking-[0.12em] text-ink"
               >
                 {sku}
               </span>

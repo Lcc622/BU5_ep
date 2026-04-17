@@ -30,26 +30,21 @@ export function CountrySelector() {
                 }
               }}
               className={[
-                'group rounded-3xl border px-4 py-4 text-left transition-all duration-200',
+                'group border border-[#E8EAED] bg-white px-4 py-4 text-left transition-colors duration-200 hover:bg-[#F7F9FA]',
                 isActive
-                  ? 'border-ink bg-ink text-white shadow-lg'
-                  : 'border-slate-200 bg-slate-50/80 text-ink hover:border-signal hover:bg-white',
+                  ? 'border-l-4 border-l-[#4D7B75] bg-[rgba(77,123,117,0.05)]'
+                  : '',
               ].join(' ')}
             >
               <div className="flex items-center justify-between">
                 <span className="text-2xl">{item.flag}</span>
-                <span
-                  className={[
-                    'rounded-full px-2 py-1 text-[11px] font-bold uppercase tracking-[0.2em]',
-                    isActive ? 'bg-white/15 text-white' : 'bg-slate-200 text-slate-700',
-                  ].join(' ')}
-                >
+                <span className="bg-[#091E40] px-2 py-0.5 text-xs font-bold text-white">
                   {item.code}
                 </span>
               </div>
               <div className="mt-5">
-                <div className="text-base font-bold">{item.label}</div>
-                <div className={isActive ? 'mt-1 text-sm text-slate-200' : 'mt-1 text-sm text-steel'}>
+                <div className="text-base font-bold text-[#091E40]">{item.label}</div>
+                <div className="mt-1 text-sm text-[#8C8C8C]">
                   Category Reports: {item.categoryReportCount}
                 </div>
               </div>

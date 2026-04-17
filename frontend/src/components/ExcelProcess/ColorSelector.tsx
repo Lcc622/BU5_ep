@@ -47,14 +47,14 @@ export function ColorSelector() {
   };
 
   return (
-    <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-panel">
+    <section className="rounded-[28px] border border-[#E8EAED] bg-white p-6 shadow-panel">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.32em] text-pine">Color Strategy</p>
           <h3 className="mt-2 text-xl font-extrabold text-ink">颜色选择与模式切换</h3>
           <p className="mt-2 text-sm text-steel">从颜色映射 API 选择目标颜色，支持关键字搜索与多选同步。</p>
         </div>
-        <div className="inline-flex rounded-full bg-slate-100 p-1">
+        <div className="inline-flex rounded-full bg-[#F7F9FA] p-1">
           {(['add-color', 'add-code'] as const).map((option) => (
             <button
               key={option}
@@ -62,7 +62,7 @@ export function ColorSelector() {
               onClick={() => setMode(option)}
               className={[
                 'rounded-full px-4 py-2 text-sm font-semibold transition',
-                mode === option ? 'bg-ink text-white' : 'text-slate-500 hover:text-ink',
+                mode === option ? 'bg-ink text-white' : 'text-[#8C8C8C] hover:text-ink',
               ].join(' ')}
             >
               {option === 'add-color' ? '加色' : '加码'}
@@ -77,7 +77,7 @@ export function ColorSelector() {
           value={keyword}
           onChange={(event) => setKeyword(event.target.value)}
           placeholder="例如 BK、black、navy"
-          className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none transition focus:border-aurora"
+          className="w-full  border border-[#E8EAED] bg-[#F7F9FA] px-4 py-3 outline-none transition focus:border-aurora"
         />
       </label>
 
@@ -99,8 +99,8 @@ export function ColorSelector() {
         )}
       </div>
 
-      <div className="mt-6 rounded-3xl border border-slate-200">
-        <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
+      <div className="mt-6 rounded-3xl border border-[#E8EAED]">
+        <div className="flex items-center justify-between border-b border-[#E8EAED] px-4 py-3">
           <div className="text-sm font-semibold text-ink">颜色池</div>
           <div className="text-xs font-bold uppercase tracking-[0.18em] text-steel">
             {selected.length} selected
@@ -119,21 +119,21 @@ export function ColorSelector() {
                   <label
                     key={code}
                     className={[
-                      'flex cursor-pointer items-start gap-3 rounded-2xl border px-4 py-3 transition',
+                      'flex cursor-pointer items-start gap-3  border px-4 py-3 transition',
                       active
                         ? 'border-ink bg-ink text-white'
-                        : 'border-slate-200 bg-slate-50 hover:border-signal hover:bg-white',
+                        : 'border-[#E8EAED] bg-[#F7F9FA] hover:border-signal hover:bg-white',
                     ].join(' ')}
                   >
                     <input
                       type="checkbox"
                       checked={active}
                       onChange={() => toggleColor(code)}
-                      className="mt-1 h-4 w-4 rounded border-slate-300"
+                      className="mt-1 h-4 w-4  border-[#E8EAED]"
                     />
                     <span className="min-w-0">
                       <span className="block text-sm font-bold uppercase">{code}</span>
-                      <span className={active ? 'mt-1 block text-xs text-slate-200' : 'mt-1 block text-xs text-steel'}>
+                      <span className={active ? 'mt-1 block text-xs text-[#8C8C8C]' : 'mt-1 block text-xs text-steel'}>
                         {names.en}
                       </span>
                     </span>

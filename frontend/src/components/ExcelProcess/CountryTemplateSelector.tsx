@@ -7,7 +7,7 @@ export function CountryTemplateSelector() {
   const template = TEMPLATE_MAP[country];
 
   return (
-    <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-panel">
+    <section className="rounded-[28px] border border-[#E8EAED] bg-white p-6 shadow-panel">
       <p className="text-xs font-bold uppercase tracking-[0.32em] text-aurora">Template</p>
       <div className="mt-3 flex flex-wrap items-center justify-between gap-4">
         <div>

@@ -8,7 +8,7 @@ export function DirectSkuInput() {
   const invalidPreview = parsed.invalidEntries.slice(0, 6);
 
   return (
-    <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-panel">
+    <section className="rounded-[28px] border border-[#E8EAED] bg-white p-6 shadow-panel">
       <p className="text-xs font-bold uppercase tracking-[0.32em] text-signal">Direct SKU</p>
       <h3 className="mt-2 text-xl font-extrabold text-ink">直接粘贴目标 SKU</h3>
       <p className="mt-2 text-sm text-steel">
@@ -26,20 +26,20 @@ export function DirectSkuInput() {
           value={directSkuText}
           onChange={(event) => setDirectSkuText(event.target.value)}
           placeholder={'例如：\nB0ABCDEBK08\nB0ABCDEBK10, B0ABCDEWH08-EU\n12345678RD12 12345678BK14-UK14'}
-          className="w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 font-mono text-sm uppercase outline-none transition focus:border-aurora"
+          className="w-full rounded-3xl border border-[#E8EAED] bg-[#F7F9FA] px-4 py-3 font-mono text-sm uppercase outline-none transition focus:border-aurora"
         />
       </label>
 
       <div className="mt-5 grid gap-3 md:grid-cols-3">
-        <div className="rounded-2xl bg-mist p-4">
+        <div className=" bg-mist p-4">
           <div className="text-xs font-bold uppercase tracking-[0.18em] text-steel">SKU 数</div>
           <div className="mt-2 text-2xl font-extrabold text-ink">{parsed.uniqueSkus.length}</div>
         </div>
-        <div className="rounded-2xl bg-mist p-4">
+        <div className=" bg-mist p-4">
           <div className="text-xs font-bold uppercase tracking-[0.18em] text-steel">产品码数</div>
           <div className="mt-2 text-2xl font-extrabold text-ink">{parsed.productCodes.length}</div>
         </div>
-        <div className="rounded-2xl bg-mist p-4">
+        <div className=" bg-mist p-4">
           <div className="text-xs font-bold uppercase tracking-[0.18em] text-steel">颜色数</div>
           <div className="mt-2 text-2xl font-extrabold text-ink">{parsed.colorCodes.length}</div>
         </div>
@@ -74,7 +74,7 @@ export function DirectSkuInput() {
             parsed.uniqueSkus.slice(0, 18).map((sku) => (
               <span
                 key={sku}
-                className="rounded-full border border-slate-300 bg-white px-3 py-2 text-xs font-bold tracking-[0.12em] text-ink"
+                className="rounded-full border border-[#E8EAED] bg-white px-3 py-2 text-xs font-bold tracking-[0.12em] text-ink"
               >
                 {sku}
               </span>
