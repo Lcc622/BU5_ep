@@ -2,9 +2,10 @@ import { apiClient } from '../lib/axios';
 
 export interface FollowSellRequest {
   country: string;
-  all_listings_file: string;
+  all_listings_files: string[];
   category_files: string[];
   new_skus: string[];
+  fr_all_listings_file?: string;
 }
 
 export interface FollowSellResult {
