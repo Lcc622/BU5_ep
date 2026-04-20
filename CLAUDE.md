@@ -117,6 +117,7 @@ All Listings (TSV) + Category Listings (XLSM)
 - **禁止使用 mock 数据**：测试必须使用真实的 SKU、真实的文件结构和真实的字段值
 - SKU 格式须符合实际业务规则（如 `ES01955BD04`、`EG02088BK04-UK1`）
 - 需要文件的测试，使用 `backend/uploads/` 下的真实文件或 `backend/tests/fixtures/` 的真实格式数据
+- **每次改动必须用真实 SKU 端到端验证**：修改处理器、索引器或模板后，必须用 `backend/uploads/` 中的真实文件构建 index，调用处理器生成输出，检查关键字段值正确后才算修复完成
 
 ## Key Paths
 

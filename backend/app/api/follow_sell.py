@@ -34,11 +34,6 @@ def _result_filename(filename: str) -> str:
 @router.post("/process", response_model=FollowSellJobStatus)
 async def start_follow_sell(request: FollowSellRequest) -> FollowSellJobStatus:
     """触发异步跟卖处理任务，返回 job_id。"""
-    try:
-        request.validate_category_count()
-    except ValueError as exc:
-        raise HTTPException(status_code=422, detail=str(exc)) from exc
-
     job_id = str(uuid.uuid4())
     with JOB_LOCK:
         JOB_STATES[job_id] = {

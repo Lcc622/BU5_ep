@@ -3,7 +3,7 @@
 from dataclasses import dataclass
 import re
 
-SUFFIX_PATTERN = re.compile(r"-(?P<country>[A-Z]{2})(?P<index>\d?)$")
+SUFFIX_PATTERN = re.compile(r"(-[A-Z]{1,2}\d?)$")
 
 
 @dataclass(frozen=True, slots=True)
@@ -13,22 +13,24 @@ class SKUInfo:
     product_code: str
     color_code: str
     size_code: str
-    suffix: str
+    suffix: str | None
     raw_sku: str
 
 
 def parse_sku(raw_sku: str) -> SKUInfo:
-    """解析欧洲站 SKU，支持 7 位或 8 位产品码。"""
+    """解析欧洲站 SKU，支持 7 位或 8 位产品码，后缀可选。"""
     sku = raw_sku.strip().upper()
     if not sku:
         raise ValueError("SKU cannot be empty")
 
     suffix_match = SUFFIX_PATTERN.search(sku)
-    if not suffix_match:
-        raise ValueError(f"Invalid SKU suffix format: {raw_sku}")
+    if suffix_match:
+        suffix: str | None = suffix_match.group(0)
+        base = sku[: suffix_match.start()]
+    else:
+        suffix = None
+        base = sku
 
-    suffix = suffix_match.group(0)
-    base = sku[: suffix_match.start()]
     if len(base) < 11:
         raise ValueError(f"SKU is too short to parse: {raw_sku}")
 
@@ -42,7 +44,7 @@ def parse_sku(raw_sku: str) -> SKUInfo:
         raise ValueError(f"Invalid product code in SKU: {raw_sku}")
     if not color_code.isalpha():
         raise ValueError(f"Invalid color code in SKU: {raw_sku}")
-    if not size_code.isdigit():
+    if not size_code.isalnum():
         raise ValueError(f"Invalid size code in SKU: {raw_sku}")
 
     return SKUInfo(

@@ -32,8 +32,10 @@ class CountryProfile:
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+PROJECT_ROOT = BASE_DIR.parent
 DATA_DIR = BASE_DIR / "data"
-TEMPLATES_DIR = BASE_DIR / "templates"
+_templates_candidates = [PROJECT_ROOT / "templates", BASE_DIR / "templates"]
+TEMPLATES_DIR = next((p for p in _templates_candidates if p.exists()), _templates_candidates[0])
 UPLOADS_DIR = BASE_DIR / "uploads"
 RESULTS_DIR = BASE_DIR / "results"
 
@@ -53,52 +55,52 @@ COUNTRY_PROFILES: dict[Country, CountryProfile] = {
         currency="GBP",
         language_tag="en_GB",
         required_category_reports=3,
-        image_suffix_main="-L",
-        image_suffixes_other=["-L1", "-L5", "-L3", "-L4", "-S-UK"],
+        image_suffix_main="-L1",
+        image_suffixes_other=["-L2", "-L5", "-L3", "-L4", "-S-UK"],
         size_offset=4,
     ),
     Country.FR: CountryProfile(
         country="FR",
-        template_file="FR补色模板.xlsx",
+        template_file="FR补色模板.xlsm",
         marketplace_id="A13V1IB3VIYZZH",
         currency="EUR",
         language_tag="fr_FR",
-        required_category_reports=2,
-        image_suffix_main="-L",
-        image_suffixes_other=["-L1", "-L5", "-L3", "-L4", "-S-FR"],
-        size_offset=0,
+        required_category_reports=4,
+        image_suffix_main="-L1",
+        image_suffixes_other=["-L2", "-L3", "-L4", "-L5", "-S-EU"],
+        size_offset=32,
     ),
     Country.DE: CountryProfile(
         country="DE",
-        template_file="DE补色模板.xlsx",
+        template_file="DE补色模板.xlsm",
         marketplace_id="A1PA6795UKMFR9",
         currency="EUR",
         language_tag="de_DE",
-        required_category_reports=2,
-        image_suffix_main="-L",
-        image_suffixes_other=["-L1", "-L5", "-L3", "-L4", "-S-DE"],
-        size_offset=0,
+        required_category_reports=4,
+        image_suffix_main="-L1",
+        image_suffixes_other=["-L5", "-L3", "-L4", "-S-EU"],
+        size_offset=32,
     ),
     Country.IT: CountryProfile(
         country="IT",
-        template_file="IT补色模板.xlsx",
+        template_file="IT补色模板.xlsm",
         marketplace_id="APJ6JRA9NG5V4",
         currency="EUR",
         language_tag="it_IT",
-        required_category_reports=2,
-        image_suffix_main="-L",
-        image_suffixes_other=["-L1", "-L5", "-L3", "-L4", "-S-IT"],
-        size_offset=0,
+        required_category_reports=4,
+        image_suffix_main="-L1",
+        image_suffixes_other=["-L5", "-L3", "-L4", "-S-EU"],
+        size_offset=32,
     ),
     Country.ES: CountryProfile(
         country="ES",
-        template_file="ES上新模板.xlsx",
+        template_file="ES上新模板.xlsm",
         marketplace_id="A1RKKUPIHCS9HS",
         currency="EUR",
         language_tag="es_ES",
-        required_category_reports=2,
-        image_suffix_main="-L",
-        image_suffixes_other=["-L1", "-L5", "-L3", "-L4", "-S-ES"],
-        size_offset=0,
+        required_category_reports=4,
+        image_suffix_main="-L1",
+        image_suffixes_other=["-L5", "-L3", "-L4", "-S-EU"],
+        size_offset=32,
     ),
 }

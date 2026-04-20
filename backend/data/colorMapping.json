@@ -44,7 +44,7 @@
   "BD": {
     "en": "Burgundy",
     "fr": "Bordeaux",
-    "de": "Burgunder",
+    "de": "Burgund",
     "it": "Bordeaux",
     "es": "Burdeos"
   },
@@ -792,6 +792,13 @@
   },
   "DS": {
     "en": "damson",
+    "fr": "",
+    "de": "",
+    "it": "",
+    "es": ""
+  },
+  "GF": {
+    "en": "Light Green Floral",
     "fr": "",
     "de": "",
     "it": "",

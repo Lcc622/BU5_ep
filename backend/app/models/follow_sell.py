@@ -3,39 +3,37 @@
 from __future__ import annotations
 from typing import Literal
 from pydantic import BaseModel, Field, field_validator
-from app.config import Country as CountryEnum, COUNTRY_PROFILES
+from app.config import Country as CountryEnum
 
 
 class FollowSellRequest(BaseModel):
     """跟卖处理请求。"""
-    country: CountryEnum = Field(..., description="目标国家（当前仅 UK）")
-    all_listings_file: str = Field(..., min_length=1, description="已上传的 All Listings 文件名")
+    country: CountryEnum = Field(..., description="目标国家（UK / FR / DE / IT / ES）")
+    all_listings_files: list[str] = Field(..., min_length=1, description="已上传的 All Listings 文件名列表")
+    fr_all_listings_file: str | None = Field(
+        None,
+        description="法国 All Listings 文件名（DE/IT/ES 跟卖必填，用于获取 FR ASIN）",
+    )
     category_files: list[str] = Field(..., min_length=1, description="已上传的 Category Listings 文件名列表")
     new_skus: list[str] = Field(..., min_length=1, description="新款 SKU 列表（每行一个）")
 
-    @field_validator("new_skus", mode="before")
+    @field_validator("all_listings_files", "category_files", "new_skus", mode="before")
     @classmethod
     def strip_and_filter(cls, values: list[str]) -> list[str]:
         normalized = [v.strip() for v in values if str(v).strip()]
         if not normalized:
-            raise ValueError("new_skus 不能为空")
+            raise ValueError("list cannot be empty")
         return normalized
 
-    @field_validator("all_listings_file")
+    @field_validator("fr_all_listings_file")
     @classmethod
-    def strip_filename(cls, v: str) -> str:
+    def strip_optional_filename(cls, v: str | None) -> str | None:
+        if v is None:
+            return None
         stripped = v.strip()
         if not stripped:
             raise ValueError("文件名不能为空")
         return stripped
-
-    def validate_category_count(self) -> None:
-        expected = COUNTRY_PROFILES[self.country].required_category_reports
-        if len(self.category_files) != expected:
-            raise ValueError(
-                f"{self.country.value} 需要 {expected} 张 Category 文件，实际 {len(self.category_files)} 张"
-            )
-
 
 class FollowSellResult(BaseModel):
     """跟卖处理结果。"""

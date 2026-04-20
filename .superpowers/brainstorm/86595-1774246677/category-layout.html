@@ -1,0 +1,57 @@
+<h2>Category Listings 上传区域设计</h2>
+<p class="subtitle">PZ/EP 分开 vs 其他方案 — 选一个你觉得最顺手的</p>
+
+<div class="cards">
+
+  <!-- Option A -->
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:16px;background:#f8fafc;border-radius:8px;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:.08em;color:#64748b;margin-bottom:8px;">CATEGORY LISTINGS REPORTS</div>
+
+      <div style="border:1px solid #e2e8f0;border-radius:8px;padding:12px;margin-bottom:8px;background:#fff;">
+        <div style="font-size:12px;font-weight:600;color:#1e293b;margin-bottom:6px;">🏪 PZ 店铺 <span style="font-size:10px;color:#94a3b8;font-weight:400;">（需 2 张）</span></div>
+        <div style="background:#f1f5f9;border-radius:4px;padding:6px 8px;font-size:11px;color:#475569;margin-bottom:4px;">0_APPAREL-DRESS.xlsm <span style="float:right;color:#ef4444;">删除</span></div>
+        <div style="background:#f1f5f9;border-radius:4px;padding:6px 8px;font-size:11px;color:#475569;">1_DRESS-SWEATER.xlsm <span style="float:right;color:#ef4444;">删除</span></div>
+        <div style="margin-top:8px;text-align:center;">
+          <span style="font-size:11px;color:#10b981;background:#d1fae5;padding:3px 10px;border-radius:20px;">✓ 已满足</span>
+        </div>
+      </div>
+
+      <div style="border:1px solid #e2e8f0;border-radius:8px;padding:12px;background:#fff;">
+        <div style="font-size:12px;font-weight:600;color:#1e293b;margin-bottom:6px;">🏪 EP 店铺 <span style="font-size:10px;color:#94a3b8;font-weight:400;">（需 2 张）</span></div>
+        <div style="background:#f1f5f9;border-radius:4px;padding:6px 8px;font-size:11px;color:#475569;margin-bottom:4px;">0_APPAREL-DRESS.xlsm <span style="float:right;color:#ef4444;">删除</span></div>
+        <div style="background:#f1f5f9;border-radius:4px;padding:6px 8px;font-size:11px;color:#475569;">1_DRESS-SWEATER.xlsm <span style="float:right;color:#ef4444;">删除</span></div>
+        <div style="margin-top:8px;text-align:center;">
+          <span style="font-size:11px;color:#10b981;background:#d1fae5;padding:3px 10px;border-radius:20px;">✓ 已满足</span>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — 分区上传（推荐）</h3>
+      <p>PZ 和 EP 各自独立区域，上传同名文件只替换本区的，不互相干扰。替换逻辑明确，不会误删。</p>
+    </div>
+  </div>
+
+  <!-- Option B -->
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:16px;background:#f8fafc;border-radius:8px;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:.08em;color:#64748b;margin-bottom:8px;">CATEGORY LISTINGS REPORTS</div>
+      <div style="font-size:10px;color:#64748b;margin-bottom:8px;">当前国家目标 4 张，至少上传 1 张即可处理</div>
+
+      <div style="border:1px solid #e2e8f0;border-radius:8px;padding:12px;background:#fff;">
+        <div style="background:#f1f5f9;border-radius:4px;padding:6px 8px;font-size:11px;color:#475569;margin-bottom:4px;">FR_cat_050416_0_APPAREL-DRESS.xlsm <span style="float:right;color:#ef4444;">删</span></div>
+        <div style="background:#f1f5f9;border-radius:4px;padding:6px 8px;font-size:11px;color:#475569;margin-bottom:4px;">FR_cat_050419_1_DRESS-SWEATER.xlsm <span style="float:right;color:#ef4444;">删</span></div>
+        <div style="background:#f1f5f9;border-radius:4px;padding:6px 8px;font-size:11px;color:#475569;margin-bottom:4px;">FR_cat_050428_0_APPAREL-DRESS.xlsm <span style="float:right;color:#ef4444;">删</span></div>
+        <div style="background:#f1f5f9;border-radius:4px;padding:6px 8px;font-size:11px;color:#475569;">FR_cat_050432_1_DRESS-SWEATER.xlsm <span style="float:right;color:#ef4444;">删</span></div>
+        <div style="margin-top:8px;text-align:center;">
+          <span style="font-size:11px;color:#10b981;background:#d1fae5;padding:3px 10px;border-radius:20px;">✓ 已满足可继续上传</span>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — 合并列表 + 手动删除</h3>
+      <p>现有方案（已修复清理 bug），4 个文件混在一起，用户手动删旧文件。更新时需要自己判断哪个是旧的。</p>
+    </div>
+  </div>
+
+</div>

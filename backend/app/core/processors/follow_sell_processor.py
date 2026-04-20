@@ -10,7 +10,7 @@ from typing import Any, Callable
 from openpyxl import load_workbook
 
 from app.config import (
-    COUNTRY_PROFILES, RESULTS_DIR, TEMPLATES_DIR, UPLOADS_DIR,
+    COUNTRY_PROFILES, RESULTS_DIR, TEMPLATES_DIR, UPLOADS_DIR, Country,
 )
 from app.core.indexers.listing_indexer import ListingIndexer
 from app.core.parsers.sku import parse_sku
@@ -19,12 +19,39 @@ from app.models.follow_sell import FollowSellRequest, FollowSellResult
 
 MAPPING_FILENAME = "新老款映射信息(1).xlsx"
 
+
+def normalize_sku_input(raw: str, country: Any) -> str:
+    from app.config import Country as _C
+    stripped = raw.strip()
+    if country == _C.UK:
+        return stripped.rstrip("+")
+    return stripped
+
 IMAGE_COLUMNS = [
     "main_image_url",
     "other_image_url1", "other_image_url2", "other_image_url3",
     "other_image_url4", "other_image_url5", "other_image_url6",
     "other_image_url7", "other_image_url8",
 ]
+
+
+def build_fr_asin_index(fr_listings_path: Path) -> dict[str, str]:
+    """从法国 All Listings 构建 {sku_upper: asin} 映射。"""
+    indexer = ListingIndexer()
+    index = indexer.build_index([fr_listings_path], [])
+    by_sku: dict[str, Any] = index.get("by_sku", {}) if isinstance(index, dict) else {}
+    fr_asin_map: dict[str, str] = {}
+
+    for raw_sku, entry in by_sku.items():
+        if not isinstance(entry, dict):
+            continue
+        flat = entry.get("merged_data") or entry.get("all_listings_data") or {}
+        asin = str(flat.get("asin1") or flat.get("product-id") or "").strip()
+        sku = str(raw_sku or flat.get("seller-sku") or flat.get("sku") or "").strip().upper()
+        if sku and asin:
+            fr_asin_map[sku] = asin
+
+    return fr_asin_map
 
 
 def load_product_mapping(mapping_path: Path | None = None) -> dict[str, str]:
@@ -51,10 +78,7 @@ def scan_old_skus_by_prefix(
     old_product_code: str,
     color_code: str,
 ) -> list[dict[str, Any]]:
-    """在 by_sku 索引中按前缀扫描老款 SKU 行，返回 merged_data 平铺字典列表。
-
-    只匹配老款格式（无国家后缀，即不含 '-'），排除已上架的新款 SKU（如 EG02084BK04-UK1）。
-    """
+    """在 by_sku 索引中按前缀扫描老款 SKU 行，返回 merged_data 平铺字典列表。"""
     prefix = (old_product_code + color_code).upper()
     by_sku: dict[str, Any] = index.get("by_sku", {}) if isinstance(index, dict) else {}
     results = []
@@ -62,9 +86,7 @@ def scan_old_skus_by_prefix(
         upper_sku = raw_sku.upper()
         if not upper_sku.startswith(prefix):
             continue
-        # 排除含国家后缀的 SKU（如 EG02084BK04-UK1），老款不含 '-'
-        if "-" in upper_sku:
-            continue
+        # TODO: UK risk pending confirmation - does UK All Listings contain old product code + -UK1 suffix SKUs? If yes, need to restore '-' filter for UK.
         if not isinstance(entry, dict):
             continue
         flat = entry.get("merged_data") or entry.get("all_listings_data") or {}
@@ -73,10 +95,14 @@ def scan_old_skus_by_prefix(
     return results
 
 
-def build_new_sku(old_sku: str, old_product_code: str, new_product_code: str, suffix: str) -> str:
-    """将老款 SKU 中的产品码替换为新款产品码，并拼接 suffix。"""
-    rest = old_sku.upper()[len(old_product_code):]
-    return new_product_code.upper() + rest + suffix
+def build_new_sku(
+    old_info: Any,
+    old_product_code: str,
+    new_product_code: str,
+    target_suffix: str | None,
+) -> str:
+    """使用老款解析结果重建新 SKU，并应用目标后缀。"""
+    return f"{new_product_code.upper()}{old_info.color_code}{old_info.size_code}{target_suffix or ''}"
 
 
 def calculate_prices(old_price: Any) -> tuple[float, float]:
@@ -186,9 +212,13 @@ class FollowSellProcessor:
 
         # 2. 构建索引
         indexer = ListingIndexer()
-        listings_path = UPLOADS_DIR / request.all_listings_file
+        listings_paths = [UPLOADS_DIR / filename for filename in request.all_listings_files]
         category_paths = [UPLOADS_DIR / f for f in request.category_files]
-        index = indexer.build_index(listings_path, category_paths)
+        index = indexer.build_index(listings_paths, category_paths)
+        if request.country in {Country.DE, Country.IT, Country.ES} and request.fr_all_listings_file:
+            fr_asin_map = build_fr_asin_index(UPLOADS_DIR / request.fr_all_listings_file)
+        else:
+            fr_asin_map = {}
 
         _progress(30)
 
@@ -197,7 +227,8 @@ class FollowSellProcessor:
         invalid_skus: list[str] = []
         for raw in request.new_skus:
             try:
-                info = parse_sku(raw)
+                normalized = normalize_sku_input(raw, request.country)
+                info = parse_sku(normalized)
             except (ValueError, Exception):
                 invalid_skus.append(raw)
                 continue
@@ -228,9 +259,31 @@ class FollowSellProcessor:
                 skipped_skus.append(f"{new_pc}{color_code}{suffix}（All Listings 无老款命中）")
                 continue
 
+            # 找同色组内有 Category 数据的"参考行"，用于补全无 Category 数据的行
+            # 优先从老款 SKU（无后缀）中找；若全无，则回退到新款 SKU（含 '-' 后缀）
+            reference_row = next(
+                (r for r in old_rows if index.get("by_sku", {}).get(
+                    str(r.get("seller-sku") or "").strip().upper(), {}
+                ).get("category_data") is not None),
+                None,
+            )
+            if reference_row is None:
+                cat_prefix = (old_pc + color_code).upper()
+                for _sku_key, _entry in index.get("by_sku", {}).items():
+                    if _sku_key.startswith(cat_prefix) and _entry.get("category_data") is not None:
+                        _ref_data = _entry.get("merged_data") or {}
+                        if _ref_data:
+                            reference_row = _ref_data
+                            break
+
             for old_row in old_rows:
                 old_sku_raw = str(old_row.get("seller-sku") or old_row.get("sku") or "").strip().upper()
                 if not old_sku_raw:
+                    continue
+                try:
+                    old_parsed = parse_sku(old_sku_raw)
+                except ValueError:
+                    no_price_skus.append(old_sku_raw)
                     continue
 
                 old_price_raw = old_row.get("price") or old_row.get("standard_price")
@@ -240,11 +293,16 @@ class FollowSellProcessor:
                     no_price_skus.append(old_sku_raw)
                     continue
 
-                new_sku = build_new_sku(old_sku_raw, old_pc, new_pc, suffix)
+                new_sku = build_new_sku(old_parsed, old_pc, new_pc, suffix)
 
-                row: dict[str, Any] = dict(old_row)
+                # 先用参考行填底，再用本行覆盖（保留本行特有字段如 seller-sku、asin1、price、size）
+                if reference_row is not None and reference_row is not old_row:
+                    row = {**reference_row, **old_row}
+                else:
+                    row = dict(old_row)
                 row["item_sku"] = new_sku
-                row["external_product_id"] = old_row.get("asin1") or old_row.get("product-id") or ""
+                fr_asin = fr_asin_map.get(old_sku_raw.upper()) if fr_asin_map else None
+                row["external_product_id"] = fr_asin or old_row.get("asin1") or old_row.get("product-id") or ""
                 row["external_product_id_type"] = "ASIN"
                 row["model"] = new_sku
                 row["part_number"] = new_sku
@@ -260,7 +318,7 @@ class FollowSellProcessor:
 
         # 5. 写入模板
         timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-        output_name = f"UK-跟卖上新-{timestamp}.xlsx"
+        output_name = f"{request.country.value}-跟卖上新-{timestamp}.xlsx"
         output_path = RESULTS_DIR / output_name
         template_path = _resolve_template_path(profile.template_file)
         _write_to_template(template_path, output_path, all_rows)
